@@ -8,7 +8,7 @@
   This file is a part of bzip2 and/or libbzip2, a program and
   library for lossless, block-sorting data compression.
 
-  Copyright (C) 1996-1999 Julian R Seward.  All rights reserved.
+  Copyright (C) 1996-2000 Julian R Seward.  All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions
@@ -43,7 +43,7 @@
 
   Julian Seward, Cambridge, UK.
   jseward@acm.org
-  bzip2/libbzip2 version 0.9.5 of 24 May 1999
+  bzip2/libbzip2 version 1.0 of 21 March 2000
 
   This program is based on (at least) the work of:
      Mike Burrows
@@ -56,6 +56,13 @@
      Jon L. Bentley
 
   For more information on these sources, see the manual.
+
+  To get some idea how the block sorting algorithms in this file 
+  work, read my paper 
+     On the Performance of BWT Sorting Algorithms
+  in Proceedings of the IEEE Data Compression Conference 2000,
+  Snowbird, Utah, USA, 27-30 March 2000.  The main sort in this
+  file implements the algorithm called  cache  in the paper.
 --*/
 
 
@@ -232,11 +239,11 @@ void fallbackQSort3 ( UInt32* fmap,
 /* Pre:
       nblock > 0
       eclass exists for [0 .. nblock-1]
-      ((UInt16*)eclass) [0 .. nblock-1] [15:8] holds block
+      ((UChar*)eclass) [0 .. nblock-1] holds block
       ptr exists for [0 .. nblock-1]
 
    Post:
-      ((UInt16*)eclass) [0 .. nblock-1] [15:8] holds block
+      ((UChar*)eclass) [0 .. nblock-1] holds block
       All other areas of eclass destroyed
       fmap [0 .. nblock-1] holds sorted order
       bhtab [ 0 .. 2+(nblock/32) ] destroyed
@@ -260,7 +267,7 @@ void fallbackSort ( UInt32* fmap,
    Int32 H, i, j, k, l, r, cc, cc1;
    Int32 nNotDone;
    Int32 nBhtab;
-   UInt16* eclass16 = (UInt16*)eclass;
+   UChar* eclass8 = (UChar*)eclass;
 
    /*--
       Initial 1-char radix sort to generate
@@ -269,12 +276,12 @@ void fallbackSort ( UInt32* fmap,
    if (verb >= 4)
       VPrintf0 ( "        bucket sorting ...\n" );
    for (i = 0; i < 257;    i++) ftab[i] = 0;
-   for (i = 0; i < nblock; i++) ftab[eclass16[i] >> 8]++;
+   for (i = 0; i < nblock; i++) ftab[eclass8[i]]++;
    for (i = 0; i < 256;    i++) ftabCopy[i] = ftab[i];
    for (i = 1; i < 257;    i++) ftab[i] += ftab[i-1];
 
    for (i = 0; i < nblock; i++) {
-      j = eclass16[i] >> 8;
+      j = eclass8[i];
       k = ftab[j] - 1;
       ftab[j] = k;
       fmap[k] = i;
@@ -354,7 +361,7 @@ void fallbackSort ( UInt32* fmap,
 
    /*-- 
       Reconstruct the original block in
-      eclass16 [0 .. nblock-1] [15:8], since the
+      eclass8 [0 .. nblock-1], since the
       previous phase destroyed it.
    --*/
    if (verb >= 4)
@@ -363,7 +370,7 @@ void fallbackSort ( UInt32* fmap,
    for (i = 0; i < nblock; i++) {
       while (ftabCopy[j] == 0) j++;
       ftabCopy[j]--;
-      eclass16[fmap[i]] = j << 8;
+      eclass8[fmap[i]] = (UChar)j;
    }
    AssertH ( j < 256, 1005 );
 }
@@ -386,67 +393,116 @@ static
 __inline__
 Bool mainGtU ( UInt32  i1, 
                UInt32  i2,
-               UInt16* block, 
+               UChar*  block, 
                UInt16* quadrant,
                UInt32  nblock,
                Int32*  budget )
 {
-   Int32 k;
+   Int32  k;
+   UChar  c1, c2;
    UInt16 s1, s2;
 
    AssertD ( i1 != i2, "mainGtU" );
-
-   s1 = block[i1]; s2 = block[i2];
-   if (s1 != s2) return (s1 > s2);
-   i1 += 2; i2 += 2;
-
-   s1 = block[i1]; s2 = block[i2];
-   if (s1 != s2) return (s1 > s2);
-   i1 += 2; i2 += 2;
-
-   s1 = block[i1]; s2 = block[i2];
-   if (s1 != s2) return (s1 > s2);
-   i1 += 2; i2 += 2;
-
-   s1 = block[i1]; s2 = block[i2];
-   if (s1 != s2) return (s1 > s2);
-   i1 += 2; i2 += 2;
-
-   s1 = block[i1]; s2 = block[i2];
-   if (s1 != s2) return (s1 > s2);
-   i1 += 2; i2 += 2;
-
-   s1 = block[i1]; s2 = block[i2];
-   if (s1 != s2) return (s1 > s2);
-   i1 += 2; i2 += 2;
+   /* 1 */
+   c1 = block[i1]; c2 = block[i2];
+   if (c1 != c2) return (c1 > c2);
+   i1++; i2++;
+   /* 2 */
+   c1 = block[i1]; c2 = block[i2];
+   if (c1 != c2) return (c1 > c2);
+   i1++; i2++;
+   /* 3 */
+   c1 = block[i1]; c2 = block[i2];
+   if (c1 != c2) return (c1 > c2);
+   i1++; i2++;
+   /* 4 */
+   c1 = block[i1]; c2 = block[i2];
+   if (c1 != c2) return (c1 > c2);
+   i1++; i2++;
+   /* 5 */
+   c1 = block[i1]; c2 = block[i2];
+   if (c1 != c2) return (c1 > c2);
+   i1++; i2++;
+   /* 6 */
+   c1 = block[i1]; c2 = block[i2];
+   if (c1 != c2) return (c1 > c2);
+   i1++; i2++;
+   /* 7 */
+   c1 = block[i1]; c2 = block[i2];
+   if (c1 != c2) return (c1 > c2);
+   i1++; i2++;
+   /* 8 */
+   c1 = block[i1]; c2 = block[i2];
+   if (c1 != c2) return (c1 > c2);
+   i1++; i2++;
+   /* 9 */
+   c1 = block[i1]; c2 = block[i2];
+   if (c1 != c2) return (c1 > c2);
+   i1++; i2++;
+   /* 10 */
+   c1 = block[i1]; c2 = block[i2];
+   if (c1 != c2) return (c1 > c2);
+   i1++; i2++;
+   /* 11 */
+   c1 = block[i1]; c2 = block[i2];
+   if (c1 != c2) return (c1 > c2);
+   i1++; i2++;
+   /* 12 */
+   c1 = block[i1]; c2 = block[i2];
+   if (c1 != c2) return (c1 > c2);
+   i1++; i2++;
 
    k = nblock + 8;
 
    do {
-
-      s1 = block[i1]; s2 = block[i2];
-      if (s1 != s2) return (s1 > s2);
+      /* 1 */
+      c1 = block[i1]; c2 = block[i2];
+      if (c1 != c2) return (c1 > c2);
       s1 = quadrant[i1]; s2 = quadrant[i2];
       if (s1 != s2) return (s1 > s2);
-      i1 += 2; i2 += 2;
-
-      s1 = block[i1]; s2 = block[i2];
-      if (s1 != s2) return (s1 > s2);
+      i1++; i2++;
+      /* 2 */
+      c1 = block[i1]; c2 = block[i2];
+      if (c1 != c2) return (c1 > c2);
       s1 = quadrant[i1]; s2 = quadrant[i2];
       if (s1 != s2) return (s1 > s2);
-      i1 += 2; i2 += 2;
-
-      s1 = block[i1]; s2 = block[i2];
-      if (s1 != s2) return (s1 > s2);
+      i1++; i2++;
+      /* 3 */
+      c1 = block[i1]; c2 = block[i2];
+      if (c1 != c2) return (c1 > c2);
       s1 = quadrant[i1]; s2 = quadrant[i2];
       if (s1 != s2) return (s1 > s2);
-      i1 += 2; i2 += 2;
-
-      s1 = block[i1]; s2 = block[i2];
-      if (s1 != s2) return (s1 > s2);
+      i1++; i2++;
+      /* 4 */
+      c1 = block[i1]; c2 = block[i2];
+      if (c1 != c2) return (c1 > c2);
       s1 = quadrant[i1]; s2 = quadrant[i2];
       if (s1 != s2) return (s1 > s2);
-      i1 += 2; i2 += 2;
+      i1++; i2++;
+      /* 5 */
+      c1 = block[i1]; c2 = block[i2];
+      if (c1 != c2) return (c1 > c2);
+      s1 = quadrant[i1]; s2 = quadrant[i2];
+      if (s1 != s2) return (s1 > s2);
+      i1++; i2++;
+      /* 6 */
+      c1 = block[i1]; c2 = block[i2];
+      if (c1 != c2) return (c1 > c2);
+      s1 = quadrant[i1]; s2 = quadrant[i2];
+      if (s1 != s2) return (s1 > s2);
+      i1++; i2++;
+      /* 7 */
+      c1 = block[i1]; c2 = block[i2];
+      if (c1 != c2) return (c1 > c2);
+      s1 = quadrant[i1]; s2 = quadrant[i2];
+      if (s1 != s2) return (s1 > s2);
+      i1++; i2++;
+      /* 8 */
+      c1 = block[i1]; c2 = block[i2];
+      if (c1 != c2) return (c1 > c2);
+      s1 = quadrant[i1]; s2 = quadrant[i2];
+      if (s1 != s2) return (s1 > s2);
+      i1++; i2++;
 
       if (i1 >= nblock) i1 -= nblock;
       if (i2 >= nblock) i2 -= nblock;
@@ -467,13 +523,14 @@ Bool mainGtU ( UInt32  i1,
    because the number of elems to sort is
    usually small, typically <= 20.
 --*/
+static
 Int32 incs[14] = { 1, 4, 13, 40, 121, 364, 1093, 3280,
                    9841, 29524, 88573, 265720,
                    797161, 2391484 };
 
 static
 void mainSimpleSort ( UInt32* ptr,
-                      UInt16* block,
+                      UChar*  block,
                       UInt16* quadrant,
                       Int32   nblock,
                       Int32   lo, 
@@ -568,18 +625,18 @@ void mainSimpleSort ( UInt32* ptr,
    }                                  \
 }
 
-
 static 
 __inline__
-UInt16 mmed3 ( UInt16 a, UInt16 b, UInt16 c )
+UChar mmed3 ( UChar a, UChar b, UChar c )
 {
-   UInt16 t;
+   UChar t;
    if (a > b) { t = a; a = b; b = t; };
-   if (b > c) { t = b; b = c; c = t; };
-   if (a > b)          b = a;
+   if (b > c) { 
+      b = c;
+      if (a > b) b = a;
+   }
    return b;
 }
-
 
 #define mmin(a,b) ((a) < (b)) ? (a) : (b)
 
@@ -609,7 +666,7 @@ UInt16 mmed3 ( UInt16 a, UInt16 b, UInt16 c )
 
 static
 void mainQSort3 ( UInt32* ptr,
-                  UInt16* block,
+                  UChar*  block,
                   UInt16* quadrant,
                   Int32   nblock,
                   Int32   loSt, 
@@ -679,7 +736,7 @@ void mainQSort3 ( UInt32* ptr,
       AssertD ( unHi == unLo-1, "mainQSort3(2)" );
 
       if (gtHi < ltLo) {
-         mpush(lo, hi, d+2 );
+         mpush(lo, hi, d+1 );
          continue;
       }
 
@@ -691,7 +748,7 @@ void mainQSort3 ( UInt32* ptr,
 
       nextLo[0] = lo;  nextHi[0] = n;   nextD[0] = d;
       nextLo[1] = m;   nextHi[1] = hi;  nextD[1] = d;
-      nextLo[2] = n+1; nextHi[2] = m-1; nextD[2] = d+2;
+      nextLo[2] = n+1; nextHi[2] = m-1; nextD[2] = d+1;
 
       if (mnextsize(0) < mnextsize(1)) mnextswap(0,1);
       if (mnextsize(1) < mnextsize(2)) mnextswap(1,2);
@@ -722,11 +779,11 @@ void mainQSort3 ( UInt32* ptr,
 /* Pre:
       nblock > N_OVERSHOOT
       block32 exists for [0 .. nblock-1 +N_OVERSHOOT]
-      ((UInt16*)block32) [0 .. nblock-1] [15:8] holds block
+      ((UChar*)block32) [0 .. nblock-1] holds block
       ptr exists for [0 .. nblock-1]
 
    Post:
-      ((UInt16*)block32) [0 .. nblock-1] [15:8] holds block
+      ((UChar*)block32) [0 .. nblock-1] holds block
       All other areas of block32 destroyed
       ftab [0 .. 65536 ] destroyed
       ptr [0 .. nblock-1] holds sorted order
@@ -739,40 +796,47 @@ void mainQSort3 ( UInt32* ptr,
 
 static
 void mainSort ( UInt32* ptr, 
-                UInt16* block,
+                UChar*  block,
                 UInt16* quadrant, 
                 UInt32* ftab,
                 Int32   nblock,
                 Int32   verb,
                 Int32*  budget )
 {
-   Int32  i, j, k, m, ss, sb;
+   Int32  i, j, k, ss, sb;
    Int32  runningOrder[256];
-   Int32  copy[256];
    Bool   bigDone[256];
+   Int32  copyStart[256];
+   Int32  copyEnd  [256];
    UChar  c1;
    Int32  numQSorted;
-   Int32  biggestSoFar;
    UInt16 s;
-
    if (verb >= 4) VPrintf0 ( "        main sort initialise ...\n" );
 
-   /*-- Stripe the block data into 16 bits, and at the
-        same time set up the 2-byte frequency table 
-   --*/
+   /*-- set up the 2-byte frequency table --*/
    for (i = 65536; i >= 0; i--) ftab[i] = 0;
 
-   s = block[0];
-   for (i = 1; i < nblock; i++) {
+   j = block[0] << 8;
+   i = nblock-1;
+   for (; i >= 3; i -= 4) {
       quadrant[i] = 0;
-      s = (s << 8) | block[i];
-      block[i-1] = s;
-      ftab[s]++;      
+      j = (j >> 8) | ( ((UInt16)block[i]) << 8);
+      ftab[j]++;
+      quadrant[i-1] = 0;
+      j = (j >> 8) | ( ((UInt16)block[i-1]) << 8);
+      ftab[j]++;
+      quadrant[i-2] = 0;
+      j = (j >> 8) | ( ((UInt16)block[i-2]) << 8);
+      ftab[j]++;
+      quadrant[i-3] = 0;
+      j = (j >> 8) | ( ((UInt16)block[i-3]) << 8);
+      ftab[j]++;
    }
-   quadrant[0] = 0;
-   s = (s << 8) | (block[0] >> 8);
-   block[nblock-1] = s;
-   ftab[s]++;
+   for (; i >= 0; i--) {
+      quadrant[i] = 0;
+      j = (j >> 8) | ( ((UInt16)block[i]) << 8);
+      ftab[j]++;
+   }
 
    /*-- (emphasises close relationship of block & quadrant) --*/
    for (i = 0; i < BZ_N_OVERSHOOT; i++) {
@@ -785,9 +849,29 @@ void mainSort ( UInt32* ptr,
    /*-- Complete the initial radix sort --*/
    for (i = 1; i <= 65536; i++) ftab[i] += ftab[i-1];
 
-   for (i = 0; i < nblock; i++) {
-      s = block[i];
-      j = ftab[s] - 1;
+   s = block[0] << 8;
+   i = nblock-1;
+   for (; i >= 3; i -= 4) {
+      s = (s >> 8) | (block[i] << 8);
+      j = ftab[s] -1;
+      ftab[s] = j;
+      ptr[j] = i;
+      s = (s >> 8) | (block[i-1] << 8);
+      j = ftab[s] -1;
+      ftab[s] = j;
+      ptr[j] = i-1;
+      s = (s >> 8) | (block[i-2] << 8);
+      j = ftab[s] -1;
+      ftab[s] = j;
+      ptr[j] = i-2;
+      s = (s >> 8) | (block[i-3] << 8);
+      j = ftab[s] -1;
+      ftab[s] = j;
+      ptr[j] = i-3;
+   }
+   for (; i >= 0; i--) {
+      s = (s >> 8) | (block[i] << 8);
+      j = ftab[s] -1;
       ftab[s] = j;
       ptr[j] = i;
    }
@@ -826,13 +910,13 @@ void mainSort ( UInt32* ptr,
       The main sorting loop.
    --*/
 
-   biggestSoFar = numQSorted = 0;
+   numQSorted = 0;
 
    for (i = 0; i <= 255; i++) {
 
       /*--
          Process big buckets, starting with the least full.
-         Basically this is a 4-step process in which we call
+         Basically this is a 3-step process in which we call
          mainQSort3 to sort the small buckets [ss, j], but
          also make a big effort to avoid the calls if we can.
       --*/
@@ -869,38 +953,37 @@ void mainSort ( UInt32* ptr,
          }
       }
 
+      AssertH ( !bigDone[ss], 1006 );
+
       /*--
          Step 2:
-         Deal specially with case [ss, ss].  This establishes the
-         sorted order for [ss, ss] without any comparisons.  
-         A clever trick, cryptically described as steps Q6b and Q6c
-         in SRC-124 (aka BW94).  Compared to bzip2, this makes it
-         practical not to use a preliminary run-length coder.
+         Now scan this big bucket [ss] so as to synthesise the
+         sorted order for small buckets [t, ss] for all t,
+         including, magically, the bucket [ss,ss] too.
+         This will avoid doing Real Work in subsequent Step 1's.
       --*/
       {
-         Int32 put0, get0, put1, get1;
-         Int32 sbn = (ss << 8) + ss;
-         Int32 lo = ftab[sbn] & CLEARMASK;
-         Int32 hi = (ftab[sbn+1] & CLEARMASK) - 1;
-         UChar ssc = (UChar)ss;
-         put0 = lo;
-         get0 = ftab[ss << 8] & CLEARMASK;
-         put1 = hi;
-         get1 = (ftab[(ss+1) << 8] & CLEARMASK) - 1;
-         while (get0 < put0) {
-            j = ptr[get0]-1; if (j < 0) j += nblock;
-            c1 = (UChar)(block[j] >> 8);
-            if (c1 == ssc) { ptr[put0] = j; put0++; };
-            get0++;
+         for (j = 0; j <= 255; j++) {
+            copyStart[j] =  ftab[(j << 8) + ss]     & CLEARMASK;
+            copyEnd  [j] = (ftab[(j << 8) + ss + 1] & CLEARMASK) - 1;
          }
-         while (get1 > put1) {
-            j = ptr[get1]-1; if (j < 0) j += nblock;
-            c1 = (UChar)(block[j] >> 8);
-            if (c1 == ssc) { ptr[put1] = j; put1--; };
-            get1--;
+         for (j = ftab[ss << 8] & CLEARMASK; j < copyStart[ss]; j++) {
+            k = ptr[j]-1; if (k < 0) k += nblock;
+            c1 = block[k];
+            if (!bigDone[c1])
+               ptr[ copyStart[c1]++ ] = k;
          }
-         ftab[sbn] |= SETMASK;
+         for (j = (ftab[(ss+1) << 8] & CLEARMASK) - 1; j > copyEnd[ss]; j--) {
+            k = ptr[j]-1; if (k < 0) k += nblock;
+            c1 = block[k];
+            if (!bigDone[c1]) 
+               ptr[ copyEnd[c1]-- ] = k;
+         }
       }
+
+      AssertH ( copyStart[ss]-1 == copyEnd[ss], 1007 );
+
+      for (j = 0; j <= 255; j++) ftab[(j << 8) + ss] |= SETMASK;
 
       /*--
          Step 3:
@@ -950,7 +1033,7 @@ void mainSort ( UInt32* ptr,
 
          while ((bbSize >> shifts) > 65534) shifts++;
 
-         for (j = 0; j < bbSize; j++) {
+         for (j = bbSize-1; j >= 0; j--) {
             Int32 a2update     = ptr[bbStart + j];
             UInt16 qVal        = (UInt16)(j >> shifts);
             quadrant[a2update] = qVal;
@@ -960,26 +1043,6 @@ void mainSort ( UInt32* ptr,
          AssertH ( ((bbSize-1) >> shifts) <= 65535, 1002 );
       }
 
-      /*--
-         Step 4:
-         Now scan this big bucket [ss] so as to synthesise the
-         sorted order for small buckets [t, ss] for all t != ss.
-         This will avoid doing Real Work in subsequent Step 1's.
-      --*/
-      for (j = 0; j <= 255; j++)
-         copy[j] = ftab[(j << 8) + ss] & CLEARMASK;
-
-      m = ftab[(ss+1) << 8] & CLEARMASK;
-      for (j = ftab[ss << 8] & CLEARMASK; j < m; j++) {
-         k = ptr[j] - 1; if (k < 0) k += nblock;
-         c1 = (UChar)(block[k] >> 8);
-         if ( ! bigDone[c1] ) {
-            ptr[copy[c1]] = k;
-            copy[c1] ++;
-         }
-      }
-
-      for (j = 0; j <= 255; j++) ftab[(j << 8) + ss] |= SETMASK;
    }
 
    if (verb >= 4)
@@ -996,19 +1059,19 @@ void mainSort ( UInt32* ptr,
 /* Pre:
       nblock > 0
       arr2 exists for [0 .. nblock-1 +N_OVERSHOOT]
-      ((UInt16*)arr2) [0 .. nblock-1] [15:8] holds block
+      ((UChar*)arr2)  [0 .. nblock-1] holds block
       arr1 exists for [0 .. nblock-1]
 
    Post:
-      ((UInt16*)arr2) [0 .. nblock-1] [15:8] holds block
+      ((UChar*)arr2) [0 .. nblock-1] holds block
       All other areas of block destroyed
       ftab [ 0 .. 65536 ] destroyed
       arr1 [0 .. nblock-1] holds sorted order
 */
-void blockSort ( EState* s )
+void BZ2_blockSort ( EState* s )
 {
    UInt32* ptr    = s->ptr; 
-   UInt16* block  = s->block;
+   UChar*  block  = s->block;
    UInt32* ftab   = s->ftab;
    Int32   nblock = s->nblock;
    Int32   verb   = s->verbosity;
@@ -1019,10 +1082,16 @@ void blockSort ( EState* s )
    Int32   i;
 
    if (nblock < 10000) {
-      for (i = 0; i < nblock; i++) block[i] <<= 8;
       fallbackSort ( s->arr1, s->arr2, ftab, nblock, verb );
    } else {
-      quadrant = &(block[nblock+BZ_N_OVERSHOOT]);
+      /* Calculate the location for quadrant, remembering to get
+         the alignment right.  Assumes that &(block[0]) is at least
+         2-byte aligned -- this should be ok since block is really
+         the first section of arr2.
+      */
+      i = nblock+BZ_N_OVERSHOOT;
+      if (i & 1) i++;
+      quadrant = (UInt16*)(&(block[i]));
 
       /* (wfact-1) / 3 puts the default-factor-30
          transition point at very roughly the same place as 

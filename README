@@ -1,9 +1,9 @@
 
 This is the README for bzip2, a block-sorting file compressor, version
-0.9.5d.  This version is fully compatible with the previous public
-releases, bzip2-0.1pl2 and bzip2-0.9.0.
+1.0.  This version is fully compatible with the previous public
+releases, bzip2-0.1pl2, bzip2-0.9.0 and bzip2-0.9.5.
 
-bzip2-0.9.5 is distributed under a BSD-style license.  For details,
+bzip2-1.0 is distributed under a BSD-style license.  For details,
 see the file LICENSE.
 
 Complete documentation is available in Postscript form (manual.ps) or
@@ -30,15 +30,37 @@ The -n instructs make to show the commands it would execute, but
 not actually execute them.
 
 
+HOW TO BUILD -- UNIX, shared library libbz2.so.
+
+Do 'make -f Makefile-libbz2_so'.  This Makefile seems to work for
+Linux-ELF (RedHat 5.2 on an x86 box), with gcc.  I make no claims
+that it works for any other platform, though I suspect it probably
+will work for most platforms employing both ELF and gcc.
+
+bzip2-shared, a client of the shared library, is also build, but
+not self-tested.  So I suggest you also build using the normal
+Makefile, since that conducts a self-test.
+
+Important note for people upgrading .so's from 0.9.0/0.9.5 to
+version 1.0.  All the functions in the library have been renamed,
+from (eg) bzCompress to BZ2_bzCompress, to avoid namespace pollution.
+Unfortunately this means that the libbz2.so created by
+Makefile-libbz2_so will not work with any program which used an
+older version of the library.  Sorry.  I do encourage library
+clients to make the effort to upgrade to use version 1.0, since
+it is both faster and more robust than previous versions.
+
+
 HOW TO BUILD -- Windows 95, NT, DOS, Mac, etc.
 
 It's difficult for me to support compilation on all these platforms.
 My approach is to collect binaries for these platforms, and put them
-on my web page (http://www.muraroa.demon.co.uk).  Look there.  However
-(FWIW), bzip2-0.9.5 is very standard ANSI C and should compile
-unmodified with MS Visual C.  For Win32, there is one important
-caveat: in bzip2.c, you must set BZ_UNIX to 0 and BZ_LCCWIN32 to 1
-before building.
+on the master web page (http://sourceware.cygnus.com/bzip2).  Look
+there.  However (FWIW), bzip2-1.0 is very standard ANSI C and should
+compile unmodified with MS Visual C.  For Win32, there is one
+important caveat: in bzip2.c, you must set BZ_UNIX to 0 and
+BZ_LCCWIN32 to 1 before building.  If you have difficulties building,
+you might want to read README.COMPILATION.PROBLEMS.
 
 
 VALIDATION
@@ -116,6 +138,10 @@ WHAT'S NEW IN 0.9.5 ?
    * Many small improvements in file and flag handling.
    * A Y2K statement.
 
+WHAT'S NEW IN 1.0
+
+   See the CHANGES file.
+
 I hope you find bzip2 useful.  Feel free to contact me at
    jseward@acm.org
 if you have any suggestions or queries.  Many people mailed me with
@@ -137,3 +163,4 @@ Cambridge, UK
 23 August 1998 (bzip2, version 0.9.0)
  8   June 1999 (bzip2, version 0.9.5)
  4   Sept 1999 (bzip2, version 0.9.5d)
+ 5    May 2000 (bzip2, version 1.0pre8)

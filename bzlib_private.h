@@ -8,7 +8,7 @@
   This file is a part of bzip2 and/or libbzip2, a program and
   library for lossless, block-sorting data compression.
 
-  Copyright (C) 1996-1999 Julian R Seward.  All rights reserved.
+  Copyright (C) 1996-2000 Julian R Seward.  All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions
@@ -43,7 +43,7 @@
 
   Julian Seward, Cambridge, UK.
   jseward@acm.org
-  bzip2/libbzip2 version 0.9.5 of 24 May 1999
+  bzip2/libbzip2 version 1.0 of 21 March 2000
 
   This program is based on (at least) the work of:
      Mike Burrows
@@ -76,7 +76,7 @@
 
 /*-- General stuff. --*/
 
-#define BZ_VERSION  "0.9.5d"
+#define BZ_VERSION  "1.0.1, 23-June-2000"
 
 typedef char            Char;
 typedef unsigned char   Bool;
@@ -94,9 +94,9 @@ typedef unsigned short  UInt16;
 #endif 
 
 #ifndef BZ_NO_STDIO
-extern void bz__AssertH__fail ( int errcode );
+extern void BZ2_bz__AssertH__fail ( int errcode );
 #define AssertH(cond,errcode) \
-   { if (!(cond)) bz__AssertH__fail ( errcode ); }
+   { if (!(cond)) BZ2_bz__AssertH__fail ( errcode ); }
 #if BZ_DEBUG
 #define AssertD(cond,msg) \
    { if (!(cond)) {       \
@@ -155,7 +155,7 @@ extern void bz_internal_error ( int errcode );
 
 /*-- Stuff for randomising repetitive blocks. --*/
 
-extern Int32 rNums[512];
+extern Int32 BZ2_rNums[512];
 
 #define BZ_RAND_DECLS                          \
    Int32 rNToGo;                               \
@@ -169,7 +169,7 @@ extern Int32 rNums[512];
 
 #define BZ_RAND_UPD_MASK                       \
    if (s->rNToGo == 0) {                       \
-      s->rNToGo = rNums[s->rTPos];             \
+      s->rNToGo = BZ2_rNums[s->rTPos];         \
       s->rTPos++;                              \
       if (s->rTPos == 512) s->rTPos = 0;       \
    }                                           \
@@ -179,7 +179,7 @@ extern Int32 rNums[512];
 
 /*-- Stuff for doing CRCs. --*/
 
-extern UInt32 crc32Table[256];
+extern UInt32 BZ2_crc32Table[256];
 
 #define BZ_INITIALISE_CRC(crcVar)              \
 {                                              \
@@ -194,8 +194,8 @@ extern UInt32 crc32Table[256];
 #define BZ_UPDATE_CRC(crcVar,cha)              \
 {                                              \
    crcVar = (crcVar << 8) ^                    \
-            crc32Table[(crcVar >> 24) ^        \
-                       ((UChar)cha)];          \
+            BZ2_crc32Table[(crcVar >> 24) ^    \
+                           ((UChar)cha)];      \
 }
 
 
@@ -241,7 +241,7 @@ typedef
 
       /* aliases for arr1 and arr2 */
       UInt32*  ptr;
-      UInt16*  block;
+      UChar*   block;
       UInt16*  mtfv;
       UChar*   zbits;
 
@@ -283,9 +283,11 @@ typedef
       UChar    selector   [BZ_MAX_SELECTORS];
       UChar    selectorMtf[BZ_MAX_SELECTORS];
 
-      UChar    len  [BZ_N_GROUPS][BZ_MAX_ALPHA_SIZE];
-      Int32    code [BZ_N_GROUPS][BZ_MAX_ALPHA_SIZE];
-      Int32    rfreq[BZ_N_GROUPS][BZ_MAX_ALPHA_SIZE];
+      UChar    len     [BZ_N_GROUPS][BZ_MAX_ALPHA_SIZE];
+      Int32    code    [BZ_N_GROUPS][BZ_MAX_ALPHA_SIZE];
+      Int32    rfreq   [BZ_N_GROUPS][BZ_MAX_ALPHA_SIZE];
+      /* second dimension: only 3 needed; 4 makes index calculations faster */
+      UInt32   len_pack[BZ_MAX_ALPHA_SIZE][4];
 
    }
    EState;
@@ -295,19 +297,19 @@ typedef
 /*-- externs for compression. --*/
 
 extern void 
-blockSort ( EState* );
+BZ2_blockSort ( EState* );
 
 extern void 
-compressBlock ( EState*, Bool );
+BZ2_compressBlock ( EState*, Bool );
 
 extern void 
-bsInitWrite ( EState* );
+BZ2_bsInitWrite ( EState* );
 
 extern void 
-hbAssignCodes ( Int32*, UChar*, Int32, Int32, Int32 );
+BZ2_hbAssignCodes ( Int32*, UChar*, Int32, Int32, Int32 );
 
 extern void 
-hbMakeCodeLengths ( UChar*, Int32*, Int32, Int32 );
+BZ2_hbMakeCodeLengths ( UChar*, Int32*, Int32, Int32 );
 
 
 
@@ -493,22 +495,22 @@ typedef
 #define GET_LL(i) \
    (((UInt32)s->ll16[i]) | (GET_LL4(i) << 16))
 
-#define BZ_GET_SMALL(cccc)                        \
-      cccc = indexIntoF ( s->tPos, s->cftab );    \
+#define BZ_GET_SMALL(cccc)                            \
+      cccc = BZ2_indexIntoF ( s->tPos, s->cftab );    \
       s->tPos = GET_LL(s->tPos);
 
 
 /*-- externs for decompression. --*/
 
 extern Int32 
-indexIntoF ( Int32, Int32* );
+BZ2_indexIntoF ( Int32, Int32* );
 
 extern Int32 
-decompress ( DState* );
+BZ2_decompress ( DState* );
 
 extern void 
-hbCreateDecodeTables ( Int32*, Int32*, Int32*, UChar*,
-                       Int32,  Int32, Int32 );
+BZ2_hbCreateDecodeTables ( Int32*, Int32*, Int32*, UChar*,
+                           Int32,  Int32, Int32 );
 
 
 #endif

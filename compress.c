@@ -8,7 +8,7 @@
   This file is a part of bzip2 and/or libbzip2, a program and
   library for lossless, block-sorting data compression.
 
-  Copyright (C) 1996-1999 Julian R Seward.  All rights reserved.
+  Copyright (C) 1996-2000 Julian R Seward.  All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions
@@ -43,7 +43,7 @@
 
   Julian Seward, Cambridge, UK.
   jseward@acm.org
-  bzip2/libbzip2 version 0.9.5 of 24 May 1999
+  bzip2/libbzip2 version 1.0 of 21 March 2000
 
   This program is based on (at least) the work of:
      Mike Burrows
@@ -78,7 +78,7 @@
 /*---------------------------------------------------*/
 
 /*---------------------------------------------------*/
-void bsInitWrite ( EState* s )
+void BZ2_bsInitWrite ( EState* s )
 {
    s->bsLive = 0;
    s->bsBuff = 0;
@@ -113,6 +113,7 @@ void bsFinishWrite ( EState* s )
 
 /*---------------------------------------------------*/
 static
+__inline__
 void bsW ( EState* s, Int32 n, UInt32 v )
 {
    bsNEEDW ( n );
@@ -164,8 +165,6 @@ void generateMTFValues ( EState* s )
 {
    UChar   yy[256];
    Int32   i, j;
-   UChar   tmp;
-   UChar   tmp2;
    Int32   zPend;
    Int32   wr;
    Int32   EOB;
@@ -174,7 +173,7 @@ void generateMTFValues ( EState* s )
       After sorting (eg, here),
          s->arr1 [ 0 .. s->nblock-1 ] holds sorted order,
          and
-         ((UInt16*)s->arr2) [ 0 .. s->nblock-1 ] [15:8] 
+         ((UChar*)s->arr2) [ 0 .. s->nblock-1 ] 
          holds the original block data.
 
       The first thing to do is generate the MTF values,
@@ -186,14 +185,14 @@ void generateMTFValues ( EState* s )
 
       The final compressed bitstream is generated into the
       area starting at
-         (UChar*) (&((UInt16)s->arr2)[s->nblock])
+         (UChar*) (&((UChar*)s->arr2)[s->nblock])
 
       These storage aliases are set up in bzCompressInit(),
       except for the last one, which is arranged in 
       compressBlock().
    */
    UInt32* ptr   = s->ptr;
-   UInt16* block = s->block;
+   UChar* block  = s->block;
    UInt16* mtfv  = s->mtfv;
 
    makeMaps_e ( s );
@@ -207,27 +206,14 @@ void generateMTFValues ( EState* s )
 
    for (i = 0; i < s->nblock; i++) {
       UChar ll_i;
-
       AssertD ( wr <= i, "generateMTFValues(1)" );
       j = ptr[i]-1; if (j < 0) j += s->nblock;
-      ll_i = s->unseqToSeq[block[j] >> 8];
+      ll_i = s->unseqToSeq[block[j]];
       AssertD ( ll_i < s->nInUse, "generateMTFValues(2a)" );
 
-      tmp = yy[0];
-      if (tmp == ll_i) { 
+      if (yy[0] == ll_i) { 
          zPend++;
       } else {
-         tmp2 = tmp;
-         tmp = yy[1];
-         yy[1] = tmp2;
-         j = 1;
-         while ( ll_i != tmp ) {
-            j++;
-            tmp2 = tmp;
-            tmp = yy[j];
-            yy[j] = tmp2;
-         };
-         yy[0] = tmp;
 
          if (zPend > 0) {
             zPend--;
@@ -244,7 +230,26 @@ void generateMTFValues ( EState* s )
             };
             zPend = 0;
          }
-         mtfv[wr] = j+1; wr++; s->mtfFreq[j+1]++;
+         {
+            register UChar  rtmp;
+            register UChar* ryy_j;
+            register UChar  rll_i;
+            rtmp  = yy[1];
+            yy[1] = yy[0];
+            ryy_j = &(yy[1]);
+            rll_i = ll_i;
+            while ( rll_i != rtmp ) {
+               register UChar rtmp2;
+               ryy_j++;
+               rtmp2  = rtmp;
+               rtmp   = *ryy_j;
+               *ryy_j = rtmp2;
+            };
+            yy[0] = rtmp;
+            j = ryy_j - &(yy[0]);
+            mtfv[wr] = j+1; wr++; s->mtfFreq[j+1]++;
+         }
+
       }
    }
 
@@ -261,6 +266,7 @@ void generateMTFValues ( EState* s )
          if (zPend < 2) break;
          zPend = (zPend - 2) / 2;
       };
+      zPend = 0;
    }
 
    mtfv[wr] = EOB; wr++; s->mtfFreq[EOB]++;
@@ -365,6 +371,18 @@ void sendMTFValues ( EState* s )
          for (v = 0; v < alphaSize; v++)
             s->rfreq[t][v] = 0;
 
+      /*---
+        Set up an auxiliary length table which is used to fast-track
+	the common case (nGroups == 6). 
+      ---*/
+      if (nGroups == 6) {
+         for (v = 0; v < alphaSize; v++) {
+            s->len_pack[v][0] = (s->len[1][v] << 16) | s->len[0][v];
+            s->len_pack[v][1] = (s->len[3][v] << 16) | s->len[2][v];
+            s->len_pack[v][2] = (s->len[5][v] << 16) | s->len[4][v];
+	 }
+      }
+
       nSelectors = 0;
       totc = 0;
       gs = 0;
@@ -381,21 +399,37 @@ void sendMTFValues ( EState* s )
          --*/
          for (t = 0; t < nGroups; t++) cost[t] = 0;
 
-         if (nGroups == 6) {
-            register UInt16 cost0, cost1, cost2, cost3, cost4, cost5;
-            cost0 = cost1 = cost2 = cost3 = cost4 = cost5 = 0;
-            for (i = gs; i <= ge; i++) { 
-               UInt16 icv = mtfv[i];
-               cost0 += s->len[0][icv];
-               cost1 += s->len[1][icv];
-               cost2 += s->len[2][icv];
-               cost3 += s->len[3][icv];
-               cost4 += s->len[4][icv];
-               cost5 += s->len[5][icv];
-            }
-            cost[0] = cost0; cost[1] = cost1; cost[2] = cost2;
-            cost[3] = cost3; cost[4] = cost4; cost[5] = cost5;
+         if (nGroups == 6 && 50 == ge-gs+1) {
+            /*--- fast track the common case ---*/
+            register UInt32 cost01, cost23, cost45;
+            register UInt16 icv;
+            cost01 = cost23 = cost45 = 0;
+
+#           define BZ_ITER(nn)                \
+               icv = mtfv[gs+(nn)];           \
+               cost01 += s->len_pack[icv][0]; \
+               cost23 += s->len_pack[icv][1]; \
+               cost45 += s->len_pack[icv][2]; \
+
+            BZ_ITER(0);  BZ_ITER(1);  BZ_ITER(2);  BZ_ITER(3);  BZ_ITER(4);
+            BZ_ITER(5);  BZ_ITER(6);  BZ_ITER(7);  BZ_ITER(8);  BZ_ITER(9);
+            BZ_ITER(10); BZ_ITER(11); BZ_ITER(12); BZ_ITER(13); BZ_ITER(14);
+            BZ_ITER(15); BZ_ITER(16); BZ_ITER(17); BZ_ITER(18); BZ_ITER(19);
+            BZ_ITER(20); BZ_ITER(21); BZ_ITER(22); BZ_ITER(23); BZ_ITER(24);
+            BZ_ITER(25); BZ_ITER(26); BZ_ITER(27); BZ_ITER(28); BZ_ITER(29);
+            BZ_ITER(30); BZ_ITER(31); BZ_ITER(32); BZ_ITER(33); BZ_ITER(34);
+            BZ_ITER(35); BZ_ITER(36); BZ_ITER(37); BZ_ITER(38); BZ_ITER(39);
+            BZ_ITER(40); BZ_ITER(41); BZ_ITER(42); BZ_ITER(43); BZ_ITER(44);
+            BZ_ITER(45); BZ_ITER(46); BZ_ITER(47); BZ_ITER(48); BZ_ITER(49);
+
+#           undef BZ_ITER
+
+            cost[0] = cost01 & 0xffff; cost[1] = cost01 >> 16;
+            cost[2] = cost23 & 0xffff; cost[3] = cost23 >> 16;
+            cost[4] = cost45 & 0xffff; cost[5] = cost45 >> 16;
+
          } else {
+	    /*--- slow version which correctly handles all situations ---*/
             for (i = gs; i <= ge; i++) { 
                UInt16 icv = mtfv[i];
                for (t = 0; t < nGroups; t++) cost[t] += s->len[t][icv];
@@ -417,8 +451,29 @@ void sendMTFValues ( EState* s )
          /*-- 
             Increment the symbol frequencies for the selected table.
           --*/
-         for (i = gs; i <= ge; i++)
-            s->rfreq[bt][ mtfv[i] ]++;
+         if (nGroups == 6 && 50 == ge-gs+1) {
+            /*--- fast track the common case ---*/
+
+#           define BZ_ITUR(nn) s->rfreq[bt][ mtfv[gs+(nn)] ]++
+
+            BZ_ITUR(0);  BZ_ITUR(1);  BZ_ITUR(2);  BZ_ITUR(3);  BZ_ITUR(4);
+            BZ_ITUR(5);  BZ_ITUR(6);  BZ_ITUR(7);  BZ_ITUR(8);  BZ_ITUR(9);
+            BZ_ITUR(10); BZ_ITUR(11); BZ_ITUR(12); BZ_ITUR(13); BZ_ITUR(14);
+            BZ_ITUR(15); BZ_ITUR(16); BZ_ITUR(17); BZ_ITUR(18); BZ_ITUR(19);
+            BZ_ITUR(20); BZ_ITUR(21); BZ_ITUR(22); BZ_ITUR(23); BZ_ITUR(24);
+            BZ_ITUR(25); BZ_ITUR(26); BZ_ITUR(27); BZ_ITUR(28); BZ_ITUR(29);
+            BZ_ITUR(30); BZ_ITUR(31); BZ_ITUR(32); BZ_ITUR(33); BZ_ITUR(34);
+            BZ_ITUR(35); BZ_ITUR(36); BZ_ITUR(37); BZ_ITUR(38); BZ_ITUR(39);
+            BZ_ITUR(40); BZ_ITUR(41); BZ_ITUR(42); BZ_ITUR(43); BZ_ITUR(44);
+            BZ_ITUR(45); BZ_ITUR(46); BZ_ITUR(47); BZ_ITUR(48); BZ_ITUR(49);
+
+#           undef BZ_ITUR
+
+         } else {
+	    /*--- slow version which correctly handles all situations ---*/
+            for (i = gs; i <= ge; i++)
+               s->rfreq[bt][ mtfv[i] ]++;
+         }
 
          gs = ge+1;
       }
@@ -434,8 +489,8 @@ void sendMTFValues ( EState* s )
         Recompute the tables based on the accumulated frequencies.
       --*/
       for (t = 0; t < nGroups; t++)
-         hbMakeCodeLengths ( &(s->len[t][0]), &(s->rfreq[t][0]), 
-                             alphaSize, 20 );
+         BZ2_hbMakeCodeLengths ( &(s->len[t][0]), &(s->rfreq[t][0]), 
+                                 alphaSize, 20 );
    }
 
 
@@ -474,8 +529,8 @@ void sendMTFValues ( EState* s )
       }
       AssertH ( !(maxLen > 20), 3004 );
       AssertH ( !(minLen < 1),  3005 );
-      hbAssignCodes ( &(s->code[t][0]), &(s->len[t][0]), 
-                      minLen, maxLen, alphaSize );
+      BZ2_hbAssignCodes ( &(s->code[t][0]), &(s->len[t][0]), 
+                          minLen, maxLen, alphaSize );
    }
 
    /*--- Transmit the mapping table. ---*/
@@ -536,12 +591,44 @@ void sendMTFValues ( EState* s )
       if (gs >= s->nMTF) break;
       ge = gs + BZ_G_SIZE - 1; 
       if (ge >= s->nMTF) ge = s->nMTF-1;
-      for (i = gs; i <= ge; i++) {
-         AssertH ( s->selector[selCtr] < nGroups, 3006 );
-         bsW ( s, 
-               s->len  [s->selector[selCtr]] [mtfv[i]],
-               s->code [s->selector[selCtr]] [mtfv[i]] );
+      AssertH ( s->selector[selCtr] < nGroups, 3006 );
+
+      if (nGroups == 6 && 50 == ge-gs+1) {
+            /*--- fast track the common case ---*/
+            UInt16 mtfv_i;
+            UChar* s_len_sel_selCtr 
+               = &(s->len[s->selector[selCtr]][0]);
+            Int32* s_code_sel_selCtr
+               = &(s->code[s->selector[selCtr]][0]);
+
+#           define BZ_ITAH(nn)                      \
+               mtfv_i = mtfv[gs+(nn)];              \
+               bsW ( s,                             \
+                     s_len_sel_selCtr[mtfv_i],      \
+                     s_code_sel_selCtr[mtfv_i] )
+
+            BZ_ITAH(0);  BZ_ITAH(1);  BZ_ITAH(2);  BZ_ITAH(3);  BZ_ITAH(4);
+            BZ_ITAH(5);  BZ_ITAH(6);  BZ_ITAH(7);  BZ_ITAH(8);  BZ_ITAH(9);
+            BZ_ITAH(10); BZ_ITAH(11); BZ_ITAH(12); BZ_ITAH(13); BZ_ITAH(14);
+            BZ_ITAH(15); BZ_ITAH(16); BZ_ITAH(17); BZ_ITAH(18); BZ_ITAH(19);
+            BZ_ITAH(20); BZ_ITAH(21); BZ_ITAH(22); BZ_ITAH(23); BZ_ITAH(24);
+            BZ_ITAH(25); BZ_ITAH(26); BZ_ITAH(27); BZ_ITAH(28); BZ_ITAH(29);
+            BZ_ITAH(30); BZ_ITAH(31); BZ_ITAH(32); BZ_ITAH(33); BZ_ITAH(34);
+            BZ_ITAH(35); BZ_ITAH(36); BZ_ITAH(37); BZ_ITAH(38); BZ_ITAH(39);
+            BZ_ITAH(40); BZ_ITAH(41); BZ_ITAH(42); BZ_ITAH(43); BZ_ITAH(44);
+            BZ_ITAH(45); BZ_ITAH(46); BZ_ITAH(47); BZ_ITAH(48); BZ_ITAH(49);
+
+#           undef BZ_ITAH
+
+      } else {
+	 /*--- slow version which correctly handles all situations ---*/
+         for (i = gs; i <= ge; i++) {
+            bsW ( s, 
+                  s->len  [s->selector[selCtr]] [mtfv[i]],
+                  s->code [s->selector[selCtr]] [mtfv[i]] );
+         }
       }
+
 
       gs = ge+1;
       selCtr++;
@@ -554,7 +641,7 @@ void sendMTFValues ( EState* s )
 
 
 /*---------------------------------------------------*/
-void compressBlock ( EState* s, Bool is_last_block )
+void BZ2_compressBlock ( EState* s, Bool is_last_block )
 {
    if (s->nblock > 0) {
 
@@ -568,14 +655,14 @@ void compressBlock ( EState* s, Bool is_last_block )
                    "combined CRC = 0x%8x, size = %d\n",
                    s->blockNo, s->blockCRC, s->combinedCRC, s->nblock );
 
-      blockSort ( s );
+      BZ2_blockSort ( s );
    }
 
-   s->zbits = (UChar*) (&((UInt16*)s->arr2)[s->nblock]);
+   s->zbits = (UChar*) (&((UChar*)s->arr2)[s->nblock]);
 
    /*-- If this is the first block, create the stream header. --*/
    if (s->blockNo == 1) {
-      bsInitWrite ( s );
+      BZ2_bsInitWrite ( s );
       bsPutUChar ( s, 'B' );
       bsPutUChar ( s, 'Z' );
       bsPutUChar ( s, 'h' );

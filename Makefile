@@ -1,7 +1,8 @@
 
 SHELL=/bin/sh
 CC=gcc
-CFLAGS=-Wall -Winline -O2 -fomit-frame-pointer -fno-strength-reduce
+BIGFILES=-D_FILE_OFFSET_BITS=64
+CFLAGS=-Wall -Winline -O2 -fomit-frame-pointer -fno-strength-reduce $(BIGFILES)
 
 OBJS= blocksort.o  \
       huffman.o    \
@@ -73,6 +74,7 @@ clean:
 	sample1.tst sample2.tst sample3.tst
 
 blocksort.o: blocksort.c
+	@cat words0
 	$(CC) $(CFLAGS) -c blocksort.c
 huffman.o: huffman.c
 	$(CC) $(CFLAGS) -c huffman.c
@@ -91,13 +93,49 @@ bzip2.o: bzip2.c
 bzip2recover.o: bzip2recover.c
 	$(CC) $(CFLAGS) -c bzip2recover.c
 
+DISTNAME=bzip2-1.0.1
 tarfile:
-	tar cvf interim.tar blocksort.c huffman.c crctable.c \
-	randtable.c compress.c decompress.c bzlib.c bzip2.c \
-	bzip2recover.c bzlib.h bzlib_private.h Makefile manual.texi \
-	manual.ps LICENSE bzip2.1 bzip2.1.preformatted bzip2.txt \
-	words1 words2 words3 sample1.ref sample2.ref sample3.ref \
-	sample1.bz2 sample2.bz2 sample3.bz2 dlltest.c \
-        *.html README CHANGES libbz2.def libbz2.dsp \
-	dlltest.dsp makefile.msc Y2K_INFO
-
+	rm -f $(DISTNAME)
+	ln -sf . $(DISTNAME)
+	tar cvf $(DISTNAME).tar \
+	   $(DISTNAME)/blocksort.c \
+	   $(DISTNAME)/huffman.c \
+	   $(DISTNAME)/crctable.c \
+	   $(DISTNAME)/randtable.c \
+	   $(DISTNAME)/compress.c \
+	   $(DISTNAME)/decompress.c \
+	   $(DISTNAME)/bzlib.c \
+	   $(DISTNAME)/bzip2.c \
+	   $(DISTNAME)/bzip2recover.c \
+	   $(DISTNAME)/bzlib.h \
+	   $(DISTNAME)/bzlib_private.h \
+	   $(DISTNAME)/Makefile \
+	   $(DISTNAME)/manual.texi \
+	   $(DISTNAME)/manual.ps \
+	   $(DISTNAME)/LICENSE \
+	   $(DISTNAME)/bzip2.1 \
+	   $(DISTNAME)/bzip2.1.preformatted \
+	   $(DISTNAME)/bzip2.txt \
+	   $(DISTNAME)/words0 \
+	   $(DISTNAME)/words1 \
+	   $(DISTNAME)/words2 \
+	   $(DISTNAME)/words3 \
+	   $(DISTNAME)/sample1.ref \
+	   $(DISTNAME)/sample2.ref \
+	   $(DISTNAME)/sample3.ref \
+	   $(DISTNAME)/sample1.bz2 \
+	   $(DISTNAME)/sample2.bz2 \
+	   $(DISTNAME)/sample3.bz2 \
+	   $(DISTNAME)/dlltest.c \
+	   $(DISTNAME)/*.html \
+	   $(DISTNAME)/README \
+	   $(DISTNAME)/README.COMPILATION.PROBLEMS \
+	   $(DISTNAME)/CHANGES \
+	   $(DISTNAME)/libbz2.def \
+	   $(DISTNAME)/libbz2.dsp \
+	   $(DISTNAME)/dlltest.dsp \
+	   $(DISTNAME)/makefile.msc \
+	   $(DISTNAME)/Y2K_INFO \
+	   $(DISTNAME)/unzcrash.c \
+	   $(DISTNAME)/spewG.c \
+	   $(DISTNAME)/Makefile-libbz2_so

@@ -7,9 +7,9 @@
 /*--
   This program is bzip2recover, a program to attempt data 
   salvage from damaged files created by the accompanying
-  bzip2-0.9.5 program.
+  bzip2-1.0 program.
 
-  Copyright (C) 1996-1999 Julian R Seward.  All rights reserved.
+  Copyright (C) 1996-2000 Julian R Seward.  All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions
@@ -44,7 +44,7 @@
 
   Julian Seward, Cambridge, UK.
   jseward@acm.org
-  bzip2/libbzip2 version 0.9.5 of 24 May 1999
+  bzip2/libbzip2 version 1.0 of 21 March 2000
 --*/
 
 /*--
@@ -282,7 +282,7 @@ Int32 main ( Int32 argc, Char** argv )
    strcpy ( progName, argv[0] );
    inFileName[0] = outFileName[0] = 0;
 
-   fprintf ( stderr, "bzip2recover 0.9.5d: extracts blocks from damaged .bz2 files.\n" );
+   fprintf ( stderr, "bzip2recover 1.0: extracts blocks from damaged .bz2 files.\n" );
 
    if (argc != 2) {
       fprintf ( stderr, "%s: usage is `%s damaged_file_name'.\n",

@@ -8,7 +8,7 @@
   This file is a part of bzip2 and/or libbzip2, a program and
   library for lossless, block-sorting data compression.
 
-  Copyright (C) 1996-1999 Julian R Seward.  All rights reserved.
+  Copyright (C) 1996-2000 Julian R Seward.  All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions
@@ -43,7 +43,7 @@
 
   Julian Seward, Cambridge, UK.
   jseward@acm.org
-  bzip2/libbzip2 version 0.9.5 of 24 May 1999
+  bzip2/libbzip2 version 1.0 of 21 March 2000
 
   This program is based on (at least) the work of:
      Mike Burrows
@@ -100,10 +100,10 @@
 
 
 /*---------------------------------------------------*/
-void hbMakeCodeLengths ( UChar *len, 
-                         Int32 *freq,
-                         Int32 alphaSize,
-                         Int32 maxLen )
+void BZ2_hbMakeCodeLengths ( UChar *len, 
+                             Int32 *freq,
+                             Int32 alphaSize,
+                             Int32 maxLen )
 {
    /*--
       Nodes and heap entries run from 1.  Entry 0
@@ -172,11 +172,11 @@ void hbMakeCodeLengths ( UChar *len,
 
 
 /*---------------------------------------------------*/
-void hbAssignCodes ( Int32 *code,
-                     UChar *length,
-                     Int32 minLen,
-                     Int32 maxLen,
-                     Int32 alphaSize )
+void BZ2_hbAssignCodes ( Int32 *code,
+                         UChar *length,
+                         Int32 minLen,
+                         Int32 maxLen,
+                         Int32 alphaSize )
 {
    Int32 n, vec, i;
 
@@ -190,13 +190,13 @@ void hbAssignCodes ( Int32 *code,
 
 
 /*---------------------------------------------------*/
-void hbCreateDecodeTables ( Int32 *limit,
-                            Int32 *base,
-                            Int32 *perm,
-                            UChar *length,
-                            Int32 minLen,
-                            Int32 maxLen,
-                            Int32 alphaSize )
+void BZ2_hbCreateDecodeTables ( Int32 *limit,
+                                Int32 *base,
+                                Int32 *perm,
+                                UChar *length,
+                                Int32 minLen,
+                                Int32 maxLen,
+                                Int32 alphaSize )
 {
    Int32 pp, i, j, vec;
 

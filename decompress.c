@@ -8,7 +8,7 @@
   This file is a part of bzip2 and/or libbzip2, a program and
   library for lossless, block-sorting data compression.
 
-  Copyright (C) 1996-1999 Julian R Seward.  All rights reserved.
+  Copyright (C) 1996-2000 Julian R Seward.  All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions
@@ -43,7 +43,7 @@
 
   Julian Seward, Cambridge, UK.
   jseward@acm.org
-  bzip2/libbzip2 version 0.9.5 of 24 May 1999
+  bzip2/libbzip2 version 1.0 of 21 March 2000
 
   This program is based on (at least) the work of:
      Mike Burrows
@@ -99,7 +99,9 @@ void makeMaps_d ( DState* s )
       s->bsLive += 8;                             \
       s->strm->next_in++;                         \
       s->strm->avail_in--;                        \
-      s->strm->total_in++;                        \
+      s->strm->total_in_lo32++;                   \
+      if (s->strm->total_in_lo32 == 0)            \
+         s->strm->total_in_hi32++;                \
    }
 
 #define GET_UCHAR(lll,uuu)                        \
@@ -113,6 +115,8 @@ void makeMaps_d ( DState* s )
 {                                                 \
    if (groupPos == 0) {                           \
       groupNo++;                                  \
+      if (groupNo >= nSelectors)                  \
+         RETURN(BZ_DATA_ERROR);                   \
       groupPos = BZ_G_SIZE;                       \
       gSel = s->selector[groupNo];                \
       gMinlen = s->minLens[gSel];                 \
@@ -123,17 +127,23 @@ void makeMaps_d ( DState* s )
    groupPos--;                                    \
    zn = gMinlen;                                  \
    GET_BITS(label1, zvec, zn);                    \
-   while (zvec > gLimit[zn]) {                    \
+   while (1) {                                    \
+      if (zn > 20 /* the longest code */)         \
+         RETURN(BZ_DATA_ERROR);                   \
+      if (zvec <= gLimit[zn]) break;              \
       zn++;                                       \
       GET_BIT(label2, zj);                        \
       zvec = (zvec << 1) | zj;                    \
    };                                             \
+   if (zvec - gBase[zn] < 0                       \
+       || zvec - gBase[zn] >= BZ_MAX_ALPHA_SIZE)  \
+      RETURN(BZ_DATA_ERROR);                      \
    lval = gPerm[zvec - gBase[zn]];                \
 }
 
 
 /*---------------------------------------------------*/
-Int32 decompress ( DState* s )
+Int32 BZ2_decompress ( DState* s )
 {
    UChar      uc;
    Int32      retVal;
@@ -288,6 +298,11 @@ Int32 decompress ( DState* s )
       GET_UCHAR(BZ_X_ORIGPTR_3, uc);
       s->origPtr = (s->origPtr << 8) | ((Int32)uc);
 
+      if (s->origPtr < 0)
+         RETURN(BZ_DATA_ERROR);
+      if (s->origPtr > 10 + 100000*s->blockSize100k) 
+         RETURN(BZ_DATA_ERROR);
+
       /*--- Receive the mapping table ---*/
       for (i = 0; i < 16; i++) {
          GET_BIT(BZ_X_MAPPING_1, uc);
@@ -305,18 +320,21 @@ Int32 decompress ( DState* s )
                if (uc == 1) s->inUse[i * 16 + j] = True;
             }
       makeMaps_d ( s );
+      if (s->nInUse == 0) RETURN(BZ_DATA_ERROR);
       alphaSize = s->nInUse+2;
 
       /*--- Now the selectors ---*/
       GET_BITS(BZ_X_SELECTOR_1, nGroups, 3);
+      if (nGroups < 2 || nGroups > 6) RETURN(BZ_DATA_ERROR);
       GET_BITS(BZ_X_SELECTOR_2, nSelectors, 15);
+      if (nSelectors < 1) RETURN(BZ_DATA_ERROR);
       for (i = 0; i < nSelectors; i++) {
          j = 0;
          while (True) {
             GET_BIT(BZ_X_SELECTOR_3, uc);
             if (uc == 0) break;
             j++;
-            if (j > 5) RETURN(BZ_DATA_ERROR);
+            if (j >= nGroups) RETURN(BZ_DATA_ERROR);
          }
          s->selectorMtf[i] = j;
       }
@@ -358,7 +376,7 @@ Int32 decompress ( DState* s )
             if (s->len[t][i] > maxLen) maxLen = s->len[t][i];
             if (s->len[t][i] < minLen) minLen = s->len[t][i];
          }
-         hbCreateDecodeTables ( 
+         BZ2_hbCreateDecodeTables ( 
             &(s->limit[t][0]), 
             &(s->base[t][0]), 
             &(s->perm[t][0]), 
@@ -392,7 +410,6 @@ Int32 decompress ( DState* s )
       /*-- end MTF init --*/
 
       nblock = 0;
-
       GET_MTF_VAL(BZ_X_MTF_1, BZ_X_MTF_2, nextSym);
 
       while (True) {
@@ -417,23 +434,24 @@ Int32 decompress ( DState* s )
 
             if (s->smallDecompress)
                while (es > 0) {
+                  if (nblock >= nblockMAX) RETURN(BZ_DATA_ERROR);
                   s->ll16[nblock] = (UInt16)uc;
                   nblock++;
                   es--;
                }
             else
                while (es > 0) {
+                  if (nblock >= nblockMAX) RETURN(BZ_DATA_ERROR);
                   s->tt[nblock] = (UInt32)uc;
                   nblock++;
                   es--;
                };
 
-            if (nblock > nblockMAX) RETURN(BZ_DATA_ERROR);
             continue;
 
          } else {
 
-            if (nblock > nblockMAX) RETURN(BZ_DATA_ERROR);
+            if (nblock >= nblockMAX) RETURN(BZ_DATA_ERROR);
 
             /*-- uc = MTF ( nextSym-1 ) --*/
             {
@@ -499,6 +517,12 @@ Int32 decompress ( DState* s )
             continue;
          }
       }
+
+      /* Now we know what nblock is, we can do a better sanity
+         check on s->origPtr.
+      */
+      if (s->origPtr < 0 || s->origPtr >= nblock)
+         RETURN(BZ_DATA_ERROR);
 
       s->state_out_len = 0;
       s->state_out_ch  = 0;
