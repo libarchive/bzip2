@@ -8,7 +8,7 @@
   This file is a part of bzip2 and/or libbzip2, a program and
   library for lossless, block-sorting data compression.
 
-  Copyright (C) 1996-1998 Julian R Seward.  All rights reserved.
+  Copyright (C) 1996-1999 Julian R Seward.  All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions
@@ -41,9 +41,9 @@
   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-  Julian Seward, Guildford, Surrey, UK.
+  Julian Seward, Cambridge, UK.
   jseward@acm.org
-  bzip2/libbzip2 version 0.9.0c of 18 October 1998
+  bzip2/libbzip2 version 0.9.5 of 24 May 1999
 
   This program is based on (at least) the work of:
      Mike Burrows
@@ -76,7 +76,7 @@
 
 /*-- General stuff. --*/
 
-#define BZ_VERSION  "0.9.0c"
+#define BZ_VERSION  "0.9.5d"
 
 typedef char            Char;
 typedef unsigned char   Bool;
@@ -85,7 +85,7 @@ typedef int             Int32;
 typedef unsigned int    UInt32;
 typedef short           Int16;
 typedef unsigned short  UInt16;
-                                       
+
 #define True  ((Bool)1)
 #define False ((Bool)0)
 
@@ -210,7 +210,11 @@ extern UInt32 crc32Table[256];
 #define BZ_S_OUTPUT    1
 #define BZ_S_INPUT     2
 
-#define BZ_NUM_OVERSHOOT_BYTES 20
+#define BZ_N_RADIX 2
+#define BZ_N_QSORT 12
+#define BZ_N_SHELL 18
+#define BZ_N_OVERSHOOT (BZ_N_RADIX + BZ_N_QSORT + BZ_N_SHELL + 2)
+
 
 
 
@@ -230,17 +234,19 @@ typedef
       UInt32   avail_in_expect;
 
       /* for doing the block sorting */
-      UChar*   block;
-      UInt16*  quadrant;
-      UInt32*  zptr;
-      UInt16*  szptr;
-      Int32*   ftab;
-      Int32    workDone;
-      Int32    workLimit;
-      Int32    workFactor;
-      Bool     firstAttempt;
-      Bool     blockRandomised;
+      UInt32*  arr1;
+      UInt32*  arr2;
+      UInt32*  ftab;
       Int32    origPtr;
+
+      /* aliases for arr1 and arr2 */
+      UInt32*  ptr;
+      UInt16*  block;
+      UInt16*  mtfv;
+      UChar*   zbits;
+
+      /* for deciding when to use the fallback sorting algorithm */
+      Int32    workFactor;
 
       /* run-length-encoding of the input */
       UInt32   state_in_ch;
@@ -269,7 +275,6 @@ typedef
       /* misc administratium */
       Int32    verbosity;
       Int32    blockNo;
-      Int32    nBlocksRandomised;
       Int32    blockSize100k;
 
       /* stuff for coding the MTF values */
@@ -478,17 +483,17 @@ typedef
    }
 
 #define GET_LL4(i)                             \
-    (((UInt32)(s->ll4[(i) >> 1])) >> (((i) << 2) & 0x4) & 0xF)
+   ((((UInt32)(s->ll4[(i) >> 1])) >> (((i) << 2) & 0x4)) & 0xF)
 
-#define SET_LL(i,n)                       \
+#define SET_LL(i,n)                          \
    { s->ll16[i] = (UInt16)(n & 0x0000ffff);  \
-     SET_LL4(i, n >> 16);                 \
+     SET_LL4(i, n >> 16);                    \
    }
 
 #define GET_LL(i) \
    (((UInt32)s->ll16[i]) | (GET_LL4(i) << 16))
 
-#define BZ_GET_SMALL(cccc)                     \
+#define BZ_GET_SMALL(cccc)                        \
       cccc = indexIntoF ( s->tPos, s->cftab );    \
       s->tPos = GET_LL(s->tPos);
 

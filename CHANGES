@@ -43,3 +43,58 @@ In compress.c:
      do a bit better on small files.  This _does_ effect
      bzip2.c.
 
+
+0.9.5a
+~~~~~~
+Major change: add a fallback sorting algorithm (blocksort.c)
+to give reasonable behaviour even for very repetitive inputs.
+Nuked --repetitive-best and --repetitive-fast since they are
+no longer useful.
+
+Minor changes: mostly a whole bunch of small changes/
+bugfixes in the driver (bzip2.c).  Changes pertaining to the
+user interface are:
+
+   allow decompression of symlink'd files to stdout
+   decompress/test files even without .bz2 extension
+   give more accurate error messages for I/O errors
+   when compressing/decompressing to stdout, don't catch control-C
+   read flags from BZIP2 and BZIP environment variables
+   decline to break hard links to a file unless forced with -f
+   allow -c flag even with no filenames
+   preserve file ownerships as far as possible
+   make -s -1 give the expected block size (100k)
+   add a flag -q --quiet to suppress nonessential warnings
+   stop decoding flags after --, so files beginning in - can be handled
+   resolved inconsistent naming: bzcat or bz2cat ?
+   bzip2 --help now returns 0
+
+Programming-level changes are:
+
+   fixed syntax error in GET_LL4 for Borland C++ 5.02
+   let bzBuffToBuffDecompress return BZ_DATA_ERROR{_MAGIC}
+   fix overshoot of mode-string end in bzopen_or_bzdopen
+   wrapped bzlib.h in #ifdef __cplusplus ... extern "C" { ... }
+   close file handles under all error conditions
+   added minor mods so it compiles with DJGPP out of the box
+   fixed Makefile so it doesn't give problems with BSD make
+   fix uninitialised memory reads in dlltest.c
+
+0.9.5b
+~~~~~~
+Open stdin/stdout in binary mode for DJGPP.
+
+0.9.5c
+~~~~~~
+Changed BZ_N_OVERSHOOT to be ... + 2 instead of ... + 1.  The + 1
+version could cause the sorted order to be wrong in some extremely
+obscure cases.  Also changed setting of quadrant in blocksort.c.
+
+0.9.5d
+~~~~~~
+The only functional change is to make bzlibVersion() in the library
+return the correct string.  This has no effect whatsoever on the
+functioning of the bzip2 program or library.  Added a couple of casts
+so the library compiles without warnings at level 3 in MS Visual
+Studio 6.0.  Included a Y2K statement in the file Y2K_INFO.  All other
+changes are minor documentation changes.

@@ -1,48 +1,44 @@
 
-
 This is the README for bzip2, a block-sorting file compressor, version
-0.9.0.  This version is fully compatible with the previous public
-release, bzip2-0.1pl2.
+0.9.5d.  This version is fully compatible with the previous public
+releases, bzip2-0.1pl2 and bzip2-0.9.0.
 
-bzip2-0.9.0 is distributed under a BSD-style license.  For details,
+bzip2-0.9.5 is distributed under a BSD-style license.  For details,
 see the file LICENSE.
 
-Complete documentation is available in Postscript form (manual.ps)
-or html (manual_toc.html).  A plain-text version of the manual page is
-available as bzip2.txt.
+Complete documentation is available in Postscript form (manual.ps) or
+html (manual_toc.html).  A plain-text version of the manual page is
+available as bzip2.txt.  A statement about Y2K issues is now included
+in the file Y2K_INFO.
 
 
 HOW TO BUILD -- UNIX
 
-Type `make'.
+Type `make'.  This builds the library libbz2.a and then the
+programs bzip2 and bzip2recover.  Six self-tests are run.
+If the self-tests complete ok, carry on to installation:
 
-This creates binaries "bzip2" and "bzip2recover".
+To install in /usr/bin, /usr/lib, /usr/man and /usr/include, type
+   make install
+To install somewhere else, eg, /xxx/yyy/{bin,lib,man,include}, type 
+   make install PREFIX=/xxx/yyy
+If you are (justifiably) paranoid and want to see what 'make install'
+is going to do, you can first do
+   make -n install                      or
+   make -n install PREFIX=/xxx/yyy      respectively.
+The -n instructs make to show the commands it would execute, but
+not actually execute them.
 
-It also runs four compress-decompress tests to make sure things are
-working properly.  If all goes well, you should be up & running.
-Please be sure to read the output from `make' just to be sure that the
-tests went ok.
-
-To install bzip2 properly:
-
-* Copy the binaries "bzip2" and "bzip2recover" to a publically visible 
-  place, possibly /usr/bin or /usr/local/bin.
-
-* In that directory, make "bunzip2" and "bzcat" be symbolic links
-  to "bzip2".
-
-* Copy the manual page, bzip2.1, to the relevant place.
-  Probably the right place is /usr/man/man1/.
-
-If you want to program with the library, you'll need to copy libbz2.a
-and bzlib.h to /usr/lib and /usr/include respectively.
-  
 
 HOW TO BUILD -- Windows 95, NT, DOS, Mac, etc.
 
 It's difficult for me to support compilation on all these platforms.
 My approach is to collect binaries for these platforms, and put them
-on my web page (http://www.muraroa.demon.co.uk).  Look there.
+on my web page (http://www.muraroa.demon.co.uk).  Look there.  However
+(FWIW), bzip2-0.9.5 is very standard ANSI C and should compile
+unmodified with MS Visual C.  For Win32, there is one important
+caveat: in bzip2.c, you must set BZ_UNIX to 0 and BZ_LCCWIN32 to 1
+before building.
 
 
 VALIDATION
@@ -112,26 +108,32 @@ WHAT'S NEW IN 0.9.0 (as compared to 0.1pl2) ?
    * Much more documentation, i.e., a proper user manual
    * Hopefully, improved portability (at least of the library)
 
+WHAT'S NEW IN 0.9.5 ?
+
+   * Compression speed is much less sensitive to the input
+     data than in previous versions.  Specifically, the very
+     slow performance caused by repetitive data is fixed.
+   * Many small improvements in file and flag handling.
+   * A Y2K statement.
 
 I hope you find bzip2 useful.  Feel free to contact me at
    jseward@acm.org
 if you have any suggestions or queries.  Many people mailed me with
 comments, suggestions and patches after the releases of bzip-0.15,
-bzip-0.21 and bzip2-0.1pl2, and the changes in bzip2 are largely a
-result of this feedback.  I thank you for your comments.
+bzip-0.21, bzip2-0.1pl2 and bzip2-0.9.0, and the changes in bzip2 are
+largely a result of this feedback.  I thank you for your comments.
 
-At least for the time being, bzip2's "home" is 
+At least for the time being, bzip2's "home" is (or can be reached via)
 http://www.muraroa.demon.co.uk.
 
 Julian Seward
 jseward@acm.org
 
-Manchester, UK
-18 July 1996 (version 0.15)
+Cambridge, UK
+18   July 1996 (version 0.15)
 25 August 1996 (version 0.21)
-
-Guildford, Surrey, UK
-7 August 1997 (bzip2, version 0.1)
+ 7 August 1997 (bzip2, version 0.1)
 29 August 1997 (bzip2, version 0.1pl2)
 23 August 1998 (bzip2, version 0.9.0)
-
+ 8   June 1999 (bzip2, version 0.9.5)
+ 4   Sept 1999 (bzip2, version 0.9.5d)

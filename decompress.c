@@ -8,7 +8,7 @@
   This file is a part of bzip2 and/or libbzip2, a program and
   library for lossless, block-sorting data compression.
 
-  Copyright (C) 1996-1998 Julian R Seward.  All rights reserved.
+  Copyright (C) 1996-1999 Julian R Seward.  All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions
@@ -41,9 +41,9 @@
   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-  Julian Seward, Guildford, Surrey, UK.
+  Julian Seward, Cambridge, UK.
   jseward@acm.org
-  bzip2/libbzip2 version 0.9.0c of 18 October 1998
+  bzip2/libbzip2 version 0.9.5 of 24 May 1999
 
   This program is based on (at least) the work of:
      Mike Burrows
@@ -141,7 +141,7 @@ Int32 decompress ( DState* s )
    bz_stream* strm = s->strm;
 
    /* stuff that needs to be saved/restored */
-   Int32 i ;
+   Int32  i;
    Int32  j;
    Int32  t;
    Int32  alphaSize;

@@ -8,7 +8,7 @@
   This file is a part of bzip2 and/or libbzip2, a program and
   library for lossless, block-sorting data compression.
 
-  Copyright (C) 1996-1998 Julian R Seward.  All rights reserved.
+  Copyright (C) 1996-1999 Julian R Seward.  All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions
@@ -41,9 +41,9 @@
   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-  Julian Seward, Guildford, Surrey, UK.
+  Julian Seward, Cambridge, UK.
   jseward@acm.org
-  bzip2/libbzip2 version 0.9.0c of 18 October 1998
+  bzip2/libbzip2 version 0.9.5 of 24 May 1999
 
   This program is based on (at least) the work of:
      Mike Burrows
@@ -62,105 +62,403 @@
 #include "bzlib_private.h"
 
 /*---------------------------------------------*/
-/*--
-  Compare two strings in block.  We assume (see
-  discussion above) that i1 and i2 have a max
-  offset of 10 on entry, and that the first
-  bytes of both block and quadrant have been
-  copied into the "overshoot area", ie
-  into the subscript range
-  [nblock .. nblock+NUM_OVERSHOOT_BYTES-1].
---*/
-static __inline__ Bool fullGtU ( UChar*  block,
-                                 UInt16* quadrant,
-                                 UInt32  nblock,
-                                 Int32*  workDone, 
-                                 Int32   i1, 
-                                 Int32   i2
-                               )
+/*--- Fallback O(N log(N)^2) sorting        ---*/
+/*--- algorithm, for repetitive blocks      ---*/
+/*---------------------------------------------*/
+
+/*---------------------------------------------*/
+static 
+__inline__
+void fallbackSimpleSort ( UInt32* fmap, 
+                          UInt32* eclass, 
+                          Int32   lo, 
+                          Int32   hi )
+{
+   Int32 i, j, tmp;
+   UInt32 ec_tmp;
+
+   if (lo == hi) return;
+
+   if (hi - lo > 3) {
+      for ( i = hi-4; i >= lo; i-- ) {
+         tmp = fmap[i];
+         ec_tmp = eclass[tmp];
+         for ( j = i+4; j <= hi && ec_tmp > eclass[fmap[j]]; j += 4 )
+            fmap[j-4] = fmap[j];
+         fmap[j-4] = tmp;
+      }
+   }
+
+   for ( i = hi-1; i >= lo; i-- ) {
+      tmp = fmap[i];
+      ec_tmp = eclass[tmp];
+      for ( j = i+1; j <= hi && ec_tmp > eclass[fmap[j]]; j++ )
+         fmap[j-1] = fmap[j];
+      fmap[j-1] = tmp;
+   }
+}
+
+
+/*---------------------------------------------*/
+#define fswap(zz1, zz2) \
+   { Int32 zztmp = zz1; zz1 = zz2; zz2 = zztmp; }
+
+#define fvswap(zzp1, zzp2, zzn)       \
+{                                     \
+   Int32 yyp1 = (zzp1);               \
+   Int32 yyp2 = (zzp2);               \
+   Int32 yyn  = (zzn);                \
+   while (yyn > 0) {                  \
+      fswap(fmap[yyp1], fmap[yyp2]);  \
+      yyp1++; yyp2++; yyn--;          \
+   }                                  \
+}
+
+
+#define fmin(a,b) ((a) < (b)) ? (a) : (b)
+
+#define fpush(lz,hz) { stackLo[sp] = lz; \
+                       stackHi[sp] = hz; \
+                       sp++; }
+
+#define fpop(lz,hz) { sp--;              \
+                      lz = stackLo[sp];  \
+                      hz = stackHi[sp]; }
+
+#define FALLBACK_QSORT_SMALL_THRESH 10
+#define FALLBACK_QSORT_STACK_SIZE   100
+
+
+static
+void fallbackQSort3 ( UInt32* fmap, 
+                      UInt32* eclass,
+                      Int32   loSt, 
+                      Int32   hiSt )
+{
+   Int32 unLo, unHi, ltLo, gtHi, n, m;
+   Int32 sp, lo, hi;
+   UInt32 med, r, r3;
+   Int32 stackLo[FALLBACK_QSORT_STACK_SIZE];
+   Int32 stackHi[FALLBACK_QSORT_STACK_SIZE];
+
+   r = 0;
+
+   sp = 0;
+   fpush ( loSt, hiSt );
+
+   while (sp > 0) {
+
+      AssertH ( sp < FALLBACK_QSORT_STACK_SIZE, 1004 );
+
+      fpop ( lo, hi );
+      if (hi - lo < FALLBACK_QSORT_SMALL_THRESH) {
+         fallbackSimpleSort ( fmap, eclass, lo, hi );
+         continue;
+      }
+
+      /* Random partitioning.  Median of 3 sometimes fails to
+         avoid bad cases.  Median of 9 seems to help but 
+         looks rather expensive.  This too seems to work but
+         is cheaper.  Guidance for the magic constants 
+         7621 and 32768 is taken from Sedgewick's algorithms
+         book, chapter 35.
+      */
+      r = ((r * 7621) + 1) % 32768;
+      r3 = r % 3;
+      if (r3 == 0) med = eclass[fmap[lo]]; else
+      if (r3 == 1) med = eclass[fmap[(lo+hi)>>1]]; else
+                   med = eclass[fmap[hi]];
+
+      unLo = ltLo = lo;
+      unHi = gtHi = hi;
+
+      while (1) {
+         while (1) {
+            if (unLo > unHi) break;
+            n = (Int32)eclass[fmap[unLo]] - (Int32)med;
+            if (n == 0) { 
+               fswap(fmap[unLo], fmap[ltLo]); 
+               ltLo++; unLo++; 
+               continue; 
+            };
+            if (n > 0) break;
+            unLo++;
+         }
+         while (1) {
+            if (unLo > unHi) break;
+            n = (Int32)eclass[fmap[unHi]] - (Int32)med;
+            if (n == 0) { 
+               fswap(fmap[unHi], fmap[gtHi]); 
+               gtHi--; unHi--; 
+               continue; 
+            };
+            if (n < 0) break;
+            unHi--;
+         }
+         if (unLo > unHi) break;
+         fswap(fmap[unLo], fmap[unHi]); unLo++; unHi--;
+      }
+
+      AssertD ( unHi == unLo-1, "fallbackQSort3(2)" );
+
+      if (gtHi < ltLo) continue;
+
+      n = fmin(ltLo-lo, unLo-ltLo); fvswap(lo, unLo-n, n);
+      m = fmin(hi-gtHi, gtHi-unHi); fvswap(unLo, hi-m+1, m);
+
+      n = lo + unLo - ltLo - 1;
+      m = hi - (gtHi - unHi) + 1;
+
+      if (n - lo > hi - m) {
+         fpush ( lo, n );
+         fpush ( m, hi );
+      } else {
+         fpush ( m, hi );
+         fpush ( lo, n );
+      }
+   }
+}
+
+#undef fmin
+#undef fpush
+#undef fpop
+#undef fswap
+#undef fvswap
+#undef FALLBACK_QSORT_SMALL_THRESH
+#undef FALLBACK_QSORT_STACK_SIZE
+
+
+/*---------------------------------------------*/
+/* Pre:
+      nblock > 0
+      eclass exists for [0 .. nblock-1]
+      ((UInt16*)eclass) [0 .. nblock-1] [15:8] holds block
+      ptr exists for [0 .. nblock-1]
+
+   Post:
+      ((UInt16*)eclass) [0 .. nblock-1] [15:8] holds block
+      All other areas of eclass destroyed
+      fmap [0 .. nblock-1] holds sorted order
+      bhtab [ 0 .. 2+(nblock/32) ] destroyed
+*/
+
+#define       SET_BH(zz)  bhtab[(zz) >> 5] |= (1 << ((zz) & 31))
+#define     CLEAR_BH(zz)  bhtab[(zz) >> 5] &= ~(1 << ((zz) & 31))
+#define     ISSET_BH(zz)  (bhtab[(zz) >> 5] & (1 << ((zz) & 31)))
+#define      WORD_BH(zz)  bhtab[(zz) >> 5]
+#define UNALIGNED_BH(zz)  ((zz) & 0x01f)
+
+static
+void fallbackSort ( UInt32* fmap, 
+                    UInt32* eclass, 
+                    UInt32* bhtab,
+                    Int32   nblock,
+                    Int32   verb )
+{
+   Int32 ftab[257];
+   Int32 ftabCopy[256];
+   Int32 H, i, j, k, l, r, cc, cc1;
+   Int32 nNotDone;
+   Int32 nBhtab;
+   UInt16* eclass16 = (UInt16*)eclass;
+
+   /*--
+      Initial 1-char radix sort to generate
+      initial fmap and initial BH bits.
+   --*/
+   if (verb >= 4)
+      VPrintf0 ( "        bucket sorting ...\n" );
+   for (i = 0; i < 257;    i++) ftab[i] = 0;
+   for (i = 0; i < nblock; i++) ftab[eclass16[i] >> 8]++;
+   for (i = 0; i < 256;    i++) ftabCopy[i] = ftab[i];
+   for (i = 1; i < 257;    i++) ftab[i] += ftab[i-1];
+
+   for (i = 0; i < nblock; i++) {
+      j = eclass16[i] >> 8;
+      k = ftab[j] - 1;
+      ftab[j] = k;
+      fmap[k] = i;
+   }
+
+   nBhtab = 2 + (nblock / 32);
+   for (i = 0; i < nBhtab; i++) bhtab[i] = 0;
+   for (i = 0; i < 256; i++) SET_BH(ftab[i]);
+
+   /*--
+      Inductively refine the buckets.  Kind-of an
+      "exponential radix sort" (!), inspired by the
+      Manber-Myers suffix array construction algorithm.
+   --*/
+
+   /*-- set sentinel bits for block-end detection --*/
+   for (i = 0; i < 32; i++) { 
+      SET_BH(nblock + 2*i);
+      CLEAR_BH(nblock + 2*i + 1);
+   }
+
+   /*-- the log(N) loop --*/
+   H = 1;
+   while (1) {
+
+      if (verb >= 4) 
+         VPrintf1 ( "        depth %6d has ", H );
+
+      j = 0;
+      for (i = 0; i < nblock; i++) {
+         if (ISSET_BH(i)) j = i;
+         k = fmap[i] - H; if (k < 0) k += nblock;
+         eclass[k] = j;
+      }
+
+      nNotDone = 0;
+      r = -1;
+      while (1) {
+
+	 /*-- find the next non-singleton bucket --*/
+         k = r + 1;
+         while (ISSET_BH(k) && UNALIGNED_BH(k)) k++;
+         if (ISSET_BH(k)) {
+            while (WORD_BH(k) == 0xffffffff) k += 32;
+            while (ISSET_BH(k)) k++;
+         }
+         l = k - 1;
+         if (l >= nblock) break;
+         while (!ISSET_BH(k) && UNALIGNED_BH(k)) k++;
+         if (!ISSET_BH(k)) {
+            while (WORD_BH(k) == 0x00000000) k += 32;
+            while (!ISSET_BH(k)) k++;
+         }
+         r = k - 1;
+         if (r >= nblock) break;
+
+         /*-- now [l, r] bracket current bucket --*/
+         if (r > l) {
+            nNotDone += (r - l + 1);
+            fallbackQSort3 ( fmap, eclass, l, r );
+
+            /*-- scan bucket and generate header bits-- */
+            cc = -1;
+            for (i = l; i <= r; i++) {
+               cc1 = eclass[fmap[i]];
+               if (cc != cc1) { SET_BH(i); cc = cc1; };
+            }
+         }
+      }
+
+      if (verb >= 4) 
+         VPrintf1 ( "%6d unresolved strings\n", nNotDone );
+
+      H *= 2;
+      if (H > nblock || nNotDone == 0) break;
+   }
+
+   /*-- 
+      Reconstruct the original block in
+      eclass16 [0 .. nblock-1] [15:8], since the
+      previous phase destroyed it.
+   --*/
+   if (verb >= 4)
+      VPrintf0 ( "        reconstructing block ...\n" );
+   j = 0;
+   for (i = 0; i < nblock; i++) {
+      while (ftabCopy[j] == 0) j++;
+      ftabCopy[j]--;
+      eclass16[fmap[i]] = j << 8;
+   }
+   AssertH ( j < 256, 1005 );
+}
+
+#undef       SET_BH
+#undef     CLEAR_BH
+#undef     ISSET_BH
+#undef      WORD_BH
+#undef UNALIGNED_BH
+
+
+/*---------------------------------------------*/
+/*--- The main, O(N^2 log(N)) sorting       ---*/
+/*--- algorithm.  Faster for "normal"       ---*/
+/*--- non-repetitive blocks.                ---*/
+/*---------------------------------------------*/
+
+/*---------------------------------------------*/
+static
+__inline__
+Bool mainGtU ( UInt32  i1, 
+               UInt32  i2,
+               UInt16* block, 
+               UInt16* quadrant,
+               UInt32  nblock,
+               Int32*  budget )
 {
    Int32 k;
-   UChar c1, c2;
    UInt16 s1, s2;
 
-   AssertD ( i1 != i2, "fullGtU(1)" );
+   AssertD ( i1 != i2, "mainGtU" );
 
-   c1 = block[i1];
-   c2 = block[i2];
-   if (c1 != c2) return (c1 > c2);
-   i1++; i2++;
+   s1 = block[i1]; s2 = block[i2];
+   if (s1 != s2) return (s1 > s2);
+   i1 += 2; i2 += 2;
 
-   c1 = block[i1];
-   c2 = block[i2];
-   if (c1 != c2) return (c1 > c2);
-   i1++; i2++;
+   s1 = block[i1]; s2 = block[i2];
+   if (s1 != s2) return (s1 > s2);
+   i1 += 2; i2 += 2;
 
-   c1 = block[i1];
-   c2 = block[i2];
-   if (c1 != c2) return (c1 > c2);
-   i1++; i2++;
+   s1 = block[i1]; s2 = block[i2];
+   if (s1 != s2) return (s1 > s2);
+   i1 += 2; i2 += 2;
 
-   c1 = block[i1];
-   c2 = block[i2];
-   if (c1 != c2) return (c1 > c2);
-   i1++; i2++;
+   s1 = block[i1]; s2 = block[i2];
+   if (s1 != s2) return (s1 > s2);
+   i1 += 2; i2 += 2;
 
-   c1 = block[i1];
-   c2 = block[i2];
-   if (c1 != c2) return (c1 > c2);
-   i1++; i2++;
+   s1 = block[i1]; s2 = block[i2];
+   if (s1 != s2) return (s1 > s2);
+   i1 += 2; i2 += 2;
 
-   c1 = block[i1];
-   c2 = block[i2];
-   if (c1 != c2) return (c1 > c2);
-   i1++; i2++;
+   s1 = block[i1]; s2 = block[i2];
+   if (s1 != s2) return (s1 > s2);
+   i1 += 2; i2 += 2;
 
-   k = nblock;
+   k = nblock + 8;
 
    do {
 
-      c1 = block[i1];
-      c2 = block[i2];
-      if (c1 != c2) return (c1 > c2);
-      s1 = quadrant[i1];
-      s2 = quadrant[i2];
+      s1 = block[i1]; s2 = block[i2];
       if (s1 != s2) return (s1 > s2);
-      i1++; i2++;
+      s1 = quadrant[i1]; s2 = quadrant[i2];
+      if (s1 != s2) return (s1 > s2);
+      i1 += 2; i2 += 2;
 
-      c1 = block[i1];
-      c2 = block[i2];
-      if (c1 != c2) return (c1 > c2);
-      s1 = quadrant[i1];
-      s2 = quadrant[i2];
+      s1 = block[i1]; s2 = block[i2];
       if (s1 != s2) return (s1 > s2);
-      i1++; i2++;
+      s1 = quadrant[i1]; s2 = quadrant[i2];
+      if (s1 != s2) return (s1 > s2);
+      i1 += 2; i2 += 2;
 
-      c1 = block[i1];
-      c2 = block[i2];
-      if (c1 != c2) return (c1 > c2);
-      s1 = quadrant[i1];
-      s2 = quadrant[i2];
+      s1 = block[i1]; s2 = block[i2];
       if (s1 != s2) return (s1 > s2);
-      i1++; i2++;
+      s1 = quadrant[i1]; s2 = quadrant[i2];
+      if (s1 != s2) return (s1 > s2);
+      i1 += 2; i2 += 2;
 
-      c1 = block[i1];
-      c2 = block[i2];
-      if (c1 != c2) return (c1 > c2);
-      s1 = quadrant[i1];
-      s2 = quadrant[i2];
+      s1 = block[i1]; s2 = block[i2];
       if (s1 != s2) return (s1 > s2);
-      i1++; i2++;
+      s1 = quadrant[i1]; s2 = quadrant[i2];
+      if (s1 != s2) return (s1 > s2);
+      i1 += 2; i2 += 2;
 
       if (i1 >= nblock) i1 -= nblock;
       if (i2 >= nblock) i2 -= nblock;
 
-      k -= 4;
-      (*workDone)++;
+      k -= 8;
+      (*budget)--;
    }
       while (k >= 0);
 
    return False;
 }
+
 
 /*---------------------------------------------*/
 /*--
@@ -169,22 +467,22 @@ static __inline__ Bool fullGtU ( UChar*  block,
    because the number of elems to sort is
    usually small, typically <= 20.
 --*/
-static Int32 incs[14] = { 1, 4, 13, 40, 121, 364, 1093, 3280,
-                          9841, 29524, 88573, 265720,
-                          797161, 2391484 };
+Int32 incs[14] = { 1, 4, 13, 40, 121, 364, 1093, 3280,
+                   9841, 29524, 88573, 265720,
+                   797161, 2391484 };
 
-static void simpleSort ( EState* s, Int32 lo, Int32 hi, Int32 d )
+static
+void mainSimpleSort ( UInt32* ptr,
+                      UInt16* block,
+                      UInt16* quadrant,
+                      Int32   nblock,
+                      Int32   lo, 
+                      Int32   hi, 
+                      Int32   d,
+                      Int32*  budget )
 {
    Int32 i, j, h, bigN, hp;
-   Int32 v;
-
-   UChar*  block        = s->block;
-   UInt32* zptr         = s->zptr;
-   UInt16* quadrant     = s->quadrant;
-   Int32*  workDone     = &(s->workDone);
-   Int32   nblock       = s->nblock;
-   Int32   workLimit    = s->workLimit;
-   Bool    firstAttempt = s->firstAttempt;
+   UInt32 v;
 
    bigN = hi - lo + 1;
    if (bigN < 2) return;
@@ -195,49 +493,53 @@ static void simpleSort ( EState* s, Int32 lo, Int32 hi, Int32 d )
 
    for (; hp >= 0; hp--) {
       h = incs[hp];
+
       i = lo + h;
       while (True) {
 
          /*-- copy 1 --*/
          if (i > hi) break;
-         v = zptr[i];
+         v = ptr[i];
          j = i;
-         while ( fullGtU ( block, quadrant, nblock, workDone,
-                           zptr[j-h]+d, v+d ) ) {
-            zptr[j] = zptr[j-h];
+         while ( mainGtU ( 
+                    ptr[j-h]+d, v+d, block, quadrant, nblock, budget 
+                 ) ) {
+            ptr[j] = ptr[j-h];
             j = j - h;
             if (j <= (lo + h - 1)) break;
          }
-         zptr[j] = v;
+         ptr[j] = v;
          i++;
 
          /*-- copy 2 --*/
          if (i > hi) break;
-         v = zptr[i];
+         v = ptr[i];
          j = i;
-         while ( fullGtU ( block, quadrant, nblock, workDone,
-                 zptr[j-h]+d, v+d ) ) {
-            zptr[j] = zptr[j-h];
+         while ( mainGtU ( 
+                    ptr[j-h]+d, v+d, block, quadrant, nblock, budget 
+                 ) ) {
+            ptr[j] = ptr[j-h];
             j = j - h;
             if (j <= (lo + h - 1)) break;
          }
-         zptr[j] = v;
+         ptr[j] = v;
          i++;
 
          /*-- copy 3 --*/
          if (i > hi) break;
-         v = zptr[i];
+         v = ptr[i];
          j = i;
-         while ( fullGtU ( block, quadrant, nblock, workDone,
-                           zptr[j-h]+d, v+d ) ) {
-            zptr[j] = zptr[j-h];
+         while ( mainGtU ( 
+                    ptr[j-h]+d, v+d, block, quadrant, nblock, budget 
+                 ) ) {
+            ptr[j] = ptr[j-h];
             j = j - h;
             if (j <= (lo + h - 1)) break;
          }
-         zptr[j] = v;
+         ptr[j] = v;
          i++;
 
-         if (*workDone > workLimit && firstAttempt) return;
+         if (*budget < 0) return;
       }
    }
 }
@@ -252,20 +554,26 @@ static void simpleSort ( EState* s, Int32 lo, Int32 hi, Int32 d )
    Sedgewick and Jon L. Bentley.
 --*/
 
-#define swap(lv1, lv2) \
-   { Int32 tmp = lv1; lv1 = lv2; lv2 = tmp; }
+#define mswap(zz1, zz2) \
+   { Int32 zztmp = zz1; zz1 = zz2; zz2 = zztmp; }
 
-static void vswap ( UInt32* zptr, Int32 p1, Int32 p2, Int32 n )
-{
-   while (n > 0) {
-      swap(zptr[p1], zptr[p2]);
-      p1++; p2++; n--;
-   }
+#define mvswap(zzp1, zzp2, zzn)       \
+{                                     \
+   Int32 yyp1 = (zzp1);               \
+   Int32 yyp2 = (zzp2);               \
+   Int32 yyn  = (zzn);                \
+   while (yyn > 0) {                  \
+      mswap(ptr[yyp1], ptr[yyp2]);    \
+      yyp1++; yyp2++; yyn--;          \
+   }                                  \
 }
 
-static UChar med3 ( UChar a, UChar b, UChar c )
+
+static 
+__inline__
+UInt16 mmed3 ( UInt16 a, UInt16 b, UInt16 c )
 {
-   UChar t;
+   UInt16 t;
    if (a > b) { t = a; a = b; b = t; };
    if (b > c) { t = b; b = c; c = t; };
    if (a > b)          b = a;
@@ -273,66 +581,72 @@ static UChar med3 ( UChar a, UChar b, UChar c )
 }
 
 
-#define min(a,b) ((a) < (b)) ? (a) : (b)
+#define mmin(a,b) ((a) < (b)) ? (a) : (b)
 
-typedef
-   struct { Int32 ll; Int32 hh; Int32 dd; }
-   StackElem;
+#define mpush(lz,hz,dz) { stackLo[sp] = lz; \
+                          stackHi[sp] = hz; \
+                          stackD [sp] = dz; \
+                          sp++; }
 
-#define push(lz,hz,dz) { stack[sp].ll = lz; \
-                         stack[sp].hh = hz; \
-                         stack[sp].dd = dz; \
-                         sp++; }
-
-#define pop(lz,hz,dz) { sp--;               \
-                        lz = stack[sp].ll;  \
-                        hz = stack[sp].hh;  \
-                        dz = stack[sp].dd; }
-
-#define SMALL_THRESH 20
-#define DEPTH_THRESH 10
-
-/*--
-   If you are ever unlucky/improbable enough
-   to get a stack overflow whilst sorting,
-   increase the following constant and try
-   again.  In practice I have never seen the
-   stack go above 27 elems, so the following
-   limit seems very generous.
---*/
-#define QSORT_STACK_SIZE 1000
+#define mpop(lz,hz,dz) { sp--;             \
+                         lz = stackLo[sp]; \
+                         hz = stackHi[sp]; \
+                         dz = stackD [sp]; }
 
 
-static void qSort3 ( EState* s, Int32 loSt, Int32 hiSt, Int32 dSt )
+#define mnextsize(az) (nextHi[az]-nextLo[az])
+
+#define mnextswap(az,bz)                                        \
+   { Int32 tz;                                                  \
+     tz = nextLo[az]; nextLo[az] = nextLo[bz]; nextLo[bz] = tz; \
+     tz = nextHi[az]; nextHi[az] = nextHi[bz]; nextHi[bz] = tz; \
+     tz = nextD [az]; nextD [az] = nextD [bz]; nextD [bz] = tz; }
+
+
+#define MAIN_QSORT_SMALL_THRESH 20
+#define MAIN_QSORT_DEPTH_THRESH (BZ_N_RADIX + BZ_N_QSORT)
+#define MAIN_QSORT_STACK_SIZE 100
+
+static
+void mainQSort3 ( UInt32* ptr,
+                  UInt16* block,
+                  UInt16* quadrant,
+                  Int32   nblock,
+                  Int32   loSt, 
+                  Int32   hiSt, 
+                  Int32   dSt,
+                  Int32*  budget )
 {
-   Int32 unLo, unHi, ltLo, gtHi, med, n, m;
+   Int32 unLo, unHi, ltLo, gtHi, n, m, med;
    Int32 sp, lo, hi, d;
-   StackElem stack[QSORT_STACK_SIZE];
 
-   UChar*  block        = s->block;
-   UInt32* zptr         = s->zptr;
-   Int32*  workDone     = &(s->workDone);
-   Int32   workLimit    = s->workLimit;
-   Bool    firstAttempt = s->firstAttempt;
+   Int32 stackLo[MAIN_QSORT_STACK_SIZE];
+   Int32 stackHi[MAIN_QSORT_STACK_SIZE];
+   Int32 stackD [MAIN_QSORT_STACK_SIZE];
+
+   Int32 nextLo[3];
+   Int32 nextHi[3];
+   Int32 nextD [3];
 
    sp = 0;
-   push ( loSt, hiSt, dSt );
+   mpush ( loSt, hiSt, dSt );
 
    while (sp > 0) {
 
-      AssertH ( sp < QSORT_STACK_SIZE, 1001 );
+      AssertH ( sp < MAIN_QSORT_STACK_SIZE, 1001 );
 
-      pop ( lo, hi, d );
-
-      if (hi - lo < SMALL_THRESH || d > DEPTH_THRESH) {
-         simpleSort ( s, lo, hi, d );
-         if (*workDone > workLimit && firstAttempt) return;
+      mpop ( lo, hi, d );
+      if (hi - lo < MAIN_QSORT_SMALL_THRESH || 
+          d > MAIN_QSORT_DEPTH_THRESH) {
+         mainSimpleSort ( ptr, block, quadrant, nblock, lo, hi, d, budget );
+         if (*budget < 0) return;
          continue;
       }
 
-      med = med3 ( block[zptr[ lo         ]+d],
-                   block[zptr[ hi         ]+d],
-                   block[zptr[ (lo+hi)>>1 ]+d] );
+      med = (Int32) 
+            mmed3 ( block[ptr[ lo         ]+d],
+                    block[ptr[ hi         ]+d],
+                    block[ptr[ (lo+hi)>>1 ]+d] );
 
       unLo = ltLo = lo;
       unHi = gtHi = hi;
@@ -340,369 +654,411 @@ static void qSort3 ( EState* s, Int32 loSt, Int32 hiSt, Int32 dSt )
       while (True) {
          while (True) {
             if (unLo > unHi) break;
-            n = ((Int32)block[zptr[unLo]+d]) - med;
-            if (n == 0) { swap(zptr[unLo], zptr[ltLo]); ltLo++; unLo++; continue; };
+            n = ((Int32)block[ptr[unLo]+d]) - med;
+            if (n == 0) { 
+               mswap(ptr[unLo], ptr[ltLo]); 
+               ltLo++; unLo++; continue; 
+            };
             if (n >  0) break;
             unLo++;
          }
          while (True) {
             if (unLo > unHi) break;
-            n = ((Int32)block[zptr[unHi]+d]) - med;
-            if (n == 0) { swap(zptr[unHi], zptr[gtHi]); gtHi--; unHi--; continue; };
+            n = ((Int32)block[ptr[unHi]+d]) - med;
+            if (n == 0) { 
+               mswap(ptr[unHi], ptr[gtHi]); 
+               gtHi--; unHi--; continue; 
+            };
             if (n <  0) break;
             unHi--;
          }
          if (unLo > unHi) break;
-         swap(zptr[unLo], zptr[unHi]); unLo++; unHi--;
+         mswap(ptr[unLo], ptr[unHi]); unLo++; unHi--;
       }
 
-      AssertD ( unHi == unLo-1, "bad termination in qSort3" );
+      AssertD ( unHi == unLo-1, "mainQSort3(2)" );
 
       if (gtHi < ltLo) {
-         push(lo, hi, d+1 );
+         mpush(lo, hi, d+2 );
          continue;
       }
 
-      n = min(ltLo-lo, unLo-ltLo); vswap(zptr, lo, unLo-n, n);
-      m = min(hi-gtHi, gtHi-unHi); vswap(zptr, unLo, hi-m+1, m);
+      n = mmin(ltLo-lo, unLo-ltLo); mvswap(lo, unLo-n, n);
+      m = mmin(hi-gtHi, gtHi-unHi); mvswap(unLo, hi-m+1, m);
 
       n = lo + unLo - ltLo - 1;
       m = hi - (gtHi - unHi) + 1;
 
-      push ( lo, n, d );
-      push ( n+1, m-1, d+1 );
-      push ( m, hi, d );
+      nextLo[0] = lo;  nextHi[0] = n;   nextD[0] = d;
+      nextLo[1] = m;   nextHi[1] = hi;  nextD[1] = d;
+      nextLo[2] = n+1; nextHi[2] = m-1; nextD[2] = d+2;
+
+      if (mnextsize(0) < mnextsize(1)) mnextswap(0,1);
+      if (mnextsize(1) < mnextsize(2)) mnextswap(1,2);
+      if (mnextsize(0) < mnextsize(1)) mnextswap(0,1);
+
+      AssertD (mnextsize(0) >= mnextsize(1), "mainQSort3(8)" );
+      AssertD (mnextsize(1) >= mnextsize(2), "mainQSort3(9)" );
+
+      mpush (nextLo[0], nextHi[0], nextD[0]);
+      mpush (nextLo[1], nextHi[1], nextD[1]);
+      mpush (nextLo[2], nextHi[2], nextD[2]);
    }
 }
 
+#undef mswap
+#undef mvswap
+#undef mpush
+#undef mpop
+#undef mmin
+#undef mnextsize
+#undef mnextswap
+#undef MAIN_QSORT_SMALL_THRESH
+#undef MAIN_QSORT_DEPTH_THRESH
+#undef MAIN_QSORT_STACK_SIZE
+
 
 /*---------------------------------------------*/
+/* Pre:
+      nblock > N_OVERSHOOT
+      block32 exists for [0 .. nblock-1 +N_OVERSHOOT]
+      ((UInt16*)block32) [0 .. nblock-1] [15:8] holds block
+      ptr exists for [0 .. nblock-1]
+
+   Post:
+      ((UInt16*)block32) [0 .. nblock-1] [15:8] holds block
+      All other areas of block32 destroyed
+      ftab [0 .. 65536 ] destroyed
+      ptr [0 .. nblock-1] holds sorted order
+      if (*budget < 0), sorting was abandoned
+*/
 
 #define BIGFREQ(b) (ftab[((b)+1) << 8] - ftab[(b) << 8])
-
 #define SETMASK (1 << 21)
 #define CLEARMASK (~(SETMASK))
 
-static void sortMain ( EState* s )
+static
+void mainSort ( UInt32* ptr, 
+                UInt16* block,
+                UInt16* quadrant, 
+                UInt32* ftab,
+                Int32   nblock,
+                Int32   verb,
+                Int32*  budget )
 {
-   Int32 i, j, k, ss, sb;
-   Int32 runningOrder[256];
-   Int32 copy[256];
-   Bool  bigDone[256];
-   UChar c1, c2;
-   Int32 numQSorted;
+   Int32  i, j, k, m, ss, sb;
+   Int32  runningOrder[256];
+   Int32  copy[256];
+   Bool   bigDone[256];
+   UChar  c1;
+   Int32  numQSorted;
+   Int32  biggestSoFar;
+   UInt16 s;
 
-   UChar*  block        = s->block;
-   UInt32* zptr         = s->zptr;
-   UInt16* quadrant     = s->quadrant;
-   Int32*  ftab         = s->ftab;
-   Int32*  workDone     = &(s->workDone);
-   Int32   nblock       = s->nblock;
-   Int32   workLimit    = s->workLimit;
-   Bool    firstAttempt = s->firstAttempt;
+   if (verb >= 4) VPrintf0 ( "        main sort initialise ...\n" );
+
+   /*-- Stripe the block data into 16 bits, and at the
+        same time set up the 2-byte frequency table 
+   --*/
+   for (i = 65536; i >= 0; i--) ftab[i] = 0;
+
+   s = block[0];
+   for (i = 1; i < nblock; i++) {
+      quadrant[i] = 0;
+      s = (s << 8) | block[i];
+      block[i-1] = s;
+      ftab[s]++;      
+   }
+   quadrant[0] = 0;
+   s = (s << 8) | (block[0] >> 8);
+   block[nblock-1] = s;
+   ftab[s]++;
+
+   /*-- (emphasises close relationship of block & quadrant) --*/
+   for (i = 0; i < BZ_N_OVERSHOOT; i++) {
+      block   [nblock+i] = block[i];
+      quadrant[nblock+i] = 0;
+   }
+
+   if (verb >= 4) VPrintf0 ( "        bucket sorting ...\n" );
+
+   /*-- Complete the initial radix sort --*/
+   for (i = 1; i <= 65536; i++) ftab[i] += ftab[i-1];
+
+   for (i = 0; i < nblock; i++) {
+      s = block[i];
+      j = ftab[s] - 1;
+      ftab[s] = j;
+      ptr[j] = i;
+   }
 
    /*--
-      In the various block-sized structures, live data runs
-      from 0 to last+NUM_OVERSHOOT_BYTES inclusive.  First,
-      set up the overshoot area for block.
+      Now ftab contains the first loc of every small bucket.
+      Calculate the running order, from smallest to largest
+      big bucket.
+   --*/
+   for (i = 0; i <= 255; i++) {
+      bigDone     [i] = False;
+      runningOrder[i] = i;
+   }
+
+   {
+      Int32 vv;
+      Int32 h = 1;
+      do h = 3 * h + 1; while (h <= 256);
+      do {
+         h = h / 3;
+         for (i = h; i <= 255; i++) {
+            vv = runningOrder[i];
+            j = i;
+            while ( BIGFREQ(runningOrder[j-h]) > BIGFREQ(vv) ) {
+               runningOrder[j] = runningOrder[j-h];
+               j = j - h;
+               if (j <= (h - 1)) goto zero;
+            }
+            zero:
+            runningOrder[j] = vv;
+         }
+      } while (h != 1);
+   }
+
+   /*--
+      The main sorting loop.
    --*/
 
-   if (s->verbosity >= 4)
-      VPrintf0( "        sort initialise ...\n" );
+   biggestSoFar = numQSorted = 0;
 
-   for (i = 0; i < BZ_NUM_OVERSHOOT_BYTES; i++)
-       block[nblock+i] = block[i % nblock];
-   for (i = 0; i < nblock+BZ_NUM_OVERSHOOT_BYTES; i++)
-       quadrant[i] = 0;
-
-
-   if (nblock <= 4000) {
+   for (i = 0; i <= 255; i++) {
 
       /*--
-         Use simpleSort(), since the full sorting mechanism
-         has quite a large constant overhead.
+         Process big buckets, starting with the least full.
+         Basically this is a 4-step process in which we call
+         mainQSort3 to sort the small buckets [ss, j], but
+         also make a big effort to avoid the calls if we can.
       --*/
-      if (s->verbosity >= 4) VPrintf0( "        simpleSort ...\n" );
-      for (i = 0; i < nblock; i++) zptr[i] = i;
-      firstAttempt = False;
-      *workDone = workLimit = 0;
-      simpleSort ( s, 0, nblock-1, 0 );
-      if (s->verbosity >= 4) VPrintf0( "        simpleSort done.\n" );
-
-   } else {
-
-      numQSorted = 0;
-      for (i = 0; i <= 255; i++) bigDone[i] = False;
-
-      if (s->verbosity >= 4) VPrintf0( "        bucket sorting ...\n" );
-
-      for (i = 0; i <= 65536; i++) ftab[i] = 0;
-
-      c1 = block[nblock-1];
-      for (i = 0; i < nblock; i++) {
-         c2 = block[i];
-         ftab[(c1 << 8) + c2]++;
-         c1 = c2;
-      }
-
-      for (i = 1; i <= 65536; i++) ftab[i] += ftab[i-1];
-
-      c1 = block[0];
-      for (i = 0; i < nblock-1; i++) {
-         c2 = block[i+1];
-         j = (c1 << 8) + c2;
-         c1 = c2;
-         ftab[j]--;
-         zptr[ftab[j]] = i;
-      }
-      j = (block[nblock-1] << 8) + block[0];
-      ftab[j]--;
-      zptr[ftab[j]] = nblock-1;
+      ss = runningOrder[i];
 
       /*--
-         Now ftab contains the first loc of every small bucket.
-         Calculate the running order, from smallest to largest
-         big bucket.
+         Step 1:
+         Complete the big bucket [ss] by quicksorting
+         any unsorted small buckets [ss, j], for j != ss.  
+         Hopefully previous pointer-scanning phases have already
+         completed many of the small buckets [ss, j], so
+         we don't have to sort them at all.
       --*/
+      for (j = 0; j <= 255; j++) {
+         if (j != ss) {
+            sb = (ss << 8) + j;
+            if ( ! (ftab[sb] & SETMASK) ) {
+               Int32 lo = ftab[sb]   & CLEARMASK;
+               Int32 hi = (ftab[sb+1] & CLEARMASK) - 1;
+               if (hi > lo) {
+                  if (verb >= 4)
+                     VPrintf4 ( "        qsort [0x%x, 0x%x]   "
+                                "done %d   this %d\n",
+                                ss, j, numQSorted, hi - lo + 1 );
+                  mainQSort3 ( 
+                     ptr, block, quadrant, nblock, 
+                     lo, hi, BZ_N_RADIX, budget 
+                  );   
+                  numQSorted += (hi - lo + 1);
+                  if (*budget < 0) return;
+               }
+            }
+            ftab[sb] |= SETMASK;
+         }
+      }
 
-      for (i = 0; i <= 255; i++) runningOrder[i] = i;
-
+      /*--
+         Step 2:
+         Deal specially with case [ss, ss].  This establishes the
+         sorted order for [ss, ss] without any comparisons.  
+         A clever trick, cryptically described as steps Q6b and Q6c
+         in SRC-124 (aka BW94).  Compared to bzip2, this makes it
+         practical not to use a preliminary run-length coder.
+      --*/
       {
-         Int32 vv;
-         Int32 h = 1;
-         do h = 3 * h + 1; while (h <= 256);
-         do {
-            h = h / 3;
-            for (i = h; i <= 255; i++) {
-               vv = runningOrder[i];
-               j = i;
-               while ( BIGFREQ(runningOrder[j-h]) > BIGFREQ(vv) ) {
-                  runningOrder[j] = runningOrder[j-h];
-                  j = j - h;
-                  if (j <= (h - 1)) goto zero;
-               }
-               zero:
-               runningOrder[j] = vv;
-            }
-         } while (h != 1);
+         Int32 put0, get0, put1, get1;
+         Int32 sbn = (ss << 8) + ss;
+         Int32 lo = ftab[sbn] & CLEARMASK;
+         Int32 hi = (ftab[sbn+1] & CLEARMASK) - 1;
+         UChar ssc = (UChar)ss;
+         put0 = lo;
+         get0 = ftab[ss << 8] & CLEARMASK;
+         put1 = hi;
+         get1 = (ftab[(ss+1) << 8] & CLEARMASK) - 1;
+         while (get0 < put0) {
+            j = ptr[get0]-1; if (j < 0) j += nblock;
+            c1 = (UChar)(block[j] >> 8);
+            if (c1 == ssc) { ptr[put0] = j; put0++; };
+            get0++;
+         }
+         while (get1 > put1) {
+            j = ptr[get1]-1; if (j < 0) j += nblock;
+            c1 = (UChar)(block[j] >> 8);
+            if (c1 == ssc) { ptr[put1] = j; put1--; };
+            get1--;
+         }
+         ftab[sbn] |= SETMASK;
       }
 
       /*--
-         The main sorting loop.
-      --*/
+         Step 3:
+         The [ss] big bucket is now done.  Record this fact,
+         and update the quadrant descriptors.  Remember to
+         update quadrants in the overshoot area too, if
+         necessary.  The "if (i < 255)" test merely skips
+         this updating for the last bucket processed, since
+         updating for the last bucket is pointless.
 
-      for (i = 0; i <= 255; i++) {
+         The quadrant array provides a way to incrementally
+         cache sort orderings, as they appear, so as to 
+         make subsequent comparisons in fullGtU() complete
+         faster.  For repetitive blocks this makes a big
+         difference (but not big enough to be able to avoid
+         the fallback sorting mechanism, exponential radix sort).
 
-         /*--
-            Process big buckets, starting with the least full.
-            Basically this is a 4-step process in which we call
-            qSort3 to sort the small buckets [ss, j], but
-            also make a big effort to avoid the calls if we can.
-         --*/
-         ss = runningOrder[i];
+         The precise meaning is: at all times:
 
-         /*--
-            Step 1:
-            Complete the big bucket [ss] by quicksorting
-            any unsorted small buckets [ss, j], for j != ss.  
-            Hopefully previous pointer-scanning phases have already
-            completed many of the small buckets [ss, j], so
-            we don't have to sort them at all.
-         --*/
-         for (j = 0; j <= 255; j++) {
-            if (j != ss) {
-               sb = (ss << 8) + j;
-               if ( ! (ftab[sb] & SETMASK) ) {
-                  Int32 lo = ftab[sb]   & CLEARMASK;
-                  Int32 hi = (ftab[sb+1] & CLEARMASK) - 1;
-                  if (hi > lo) {
-                     if (s->verbosity >= 4)
-                        VPrintf4( "        qsort [0x%x, 0x%x]   done %d   this %d\n",
-                                  ss, j, numQSorted, hi - lo + 1 );
-                     qSort3 ( s, lo, hi, 2 );
-                     numQSorted += ( hi - lo + 1 );
-                     if (*workDone > workLimit && firstAttempt) return;
-                  }
+            for 0 <= i < nblock and 0 <= j <= nblock
+
+            if block[i] != block[j], 
+
+               then the relative values of quadrant[i] and 
+                    quadrant[j] are meaningless.
+
+               else {
+                  if quadrant[i] < quadrant[j]
+                     then the string starting at i lexicographically
+                     precedes the string starting at j
+
+                  else if quadrant[i] > quadrant[j]
+                     then the string starting at j lexicographically
+                     precedes the string starting at i
+
+                  else
+                     the relative ordering of the strings starting
+                     at i and j has not yet been determined.
                }
-               ftab[sb] |= SETMASK;
-            }
+      --*/
+      bigDone[ss] = True;
+
+      if (i < 255) {
+         Int32 bbStart  = ftab[ss << 8] & CLEARMASK;
+         Int32 bbSize   = (ftab[(ss+1) << 8] & CLEARMASK) - bbStart;
+         Int32 shifts   = 0;
+
+         while ((bbSize >> shifts) > 65534) shifts++;
+
+         for (j = 0; j < bbSize; j++) {
+            Int32 a2update     = ptr[bbStart + j];
+            UInt16 qVal        = (UInt16)(j >> shifts);
+            quadrant[a2update] = qVal;
+            if (a2update < BZ_N_OVERSHOOT)
+               quadrant[a2update + nblock] = qVal;
          }
-
-         /*--
-            Step 2:
-            Deal specially with case [ss, ss].  This establishes the
-            sorted order for [ss, ss] without any comparisons.  
-            A clever trick, cryptically described as steps Q6b and Q6c
-            in SRC-124 (aka BW94).  This makes it entirely practical to
-            not use a preliminary run-length coder, but unfortunately
-            we are now stuck with the .bz2 file format.
-         --*/
-         {
-            Int32 put0, get0, put1, get1;
-            Int32 sbn = (ss << 8) + ss;
-            Int32 lo = ftab[sbn] & CLEARMASK;
-            Int32 hi = (ftab[sbn+1] & CLEARMASK) - 1;
-            UChar ssc = (UChar)ss;
-            put0 = lo;
-            get0 = ftab[ss << 8] & CLEARMASK;
-            put1 = hi;
-            get1 = (ftab[(ss+1) << 8] & CLEARMASK) - 1;
-            while (get0 < put0) {
-               j = zptr[get0]-1; if (j < 0) j += nblock;
-               c1 = block[j];
-               if (c1 == ssc) { zptr[put0] = j; put0++; };
-               get0++;
-            }
-            while (get1 > put1) {
-               j = zptr[get1]-1; if (j < 0) j += nblock;
-               c1 = block[j];
-               if (c1 == ssc) { zptr[put1] = j; put1--; };
-               get1--;
-            }
-            ftab[sbn] |= SETMASK;
-         }
-
-         /*--
-            Step 3:
-            The [ss] big bucket is now done.  Record this fact,
-            and update the quadrant descriptors.  Remember to
-            update quadrants in the overshoot area too, if
-            necessary.  The "if (i < 255)" test merely skips
-            this updating for the last bucket processed, since
-            updating for the last bucket is pointless.
-
-            The quadrant array provides a way to incrementally
-            cache sort orderings, as they appear, so as to 
-            make subsequent comparisons in fullGtU() complete
-            faster.  For repetitive blocks this makes a big
-            difference (but not big enough to be able to avoid
-            randomisation for very repetitive data.)
-
-            The precise meaning is: at all times:
-
-               for 0 <= i < nblock and 0 <= j <= nblock
-
-               if block[i] != block[j], 
-
-                  then the relative values of quadrant[i] and 
-                       quadrant[j] are meaningless.
-
-                  else {
-                     if quadrant[i] < quadrant[j]
-                        then the string starting at i lexicographically
-                        precedes the string starting at j
-
-                     else if quadrant[i] > quadrant[j]
-                        then the string starting at j lexicographically
-                        precedes the string starting at i
-
-                     else
-                        the relative ordering of the strings starting
-                        at i and j has not yet been determined.
-                  }
-         --*/
-         bigDone[ss] = True;
-
-         if (i < 255) {
-            Int32 bbStart  = ftab[ss << 8] & CLEARMASK;
-            Int32 bbSize   = (ftab[(ss+1) << 8] & CLEARMASK) - bbStart;
-            Int32 shifts   = 0;
-
-            while ((bbSize >> shifts) > 65534) shifts++;
-
-            for (j = 0; j < bbSize; j++) {
-               Int32 a2update     = zptr[bbStart + j];
-               UInt16 qVal        = (UInt16)(j >> shifts);
-               quadrant[a2update] = qVal;
-               if (a2update < BZ_NUM_OVERSHOOT_BYTES)
-                  quadrant[a2update + nblock] = qVal;
-            }
-
-            AssertH ( ( ((bbSize-1) >> shifts) <= 65535 ), 1002 );
-         }
-
-         /*--
-            Step 4:
-            Now scan this big bucket [ss] so as to synthesise the
-            sorted order for small buckets [t, ss] for all t != ss.
-            This will avoid doing Real Work in subsequent Step 1's.
-         --*/
-         for (j = 0; j <= 255; j++)
-            copy[j] = ftab[(j << 8) + ss] & CLEARMASK;
-
-         for (j = ftab[ss << 8] & CLEARMASK;
-              j < (ftab[(ss+1) << 8] & CLEARMASK);
-              j++) {
-            k = zptr[j]-1; if (k < 0) k += nblock;
-            c1 = block[k];
-            if ( ! bigDone[c1] ) {
-               zptr[copy[c1]] = k;
-               copy[c1] ++;
-            }
-         }
-
-         for (j = 0; j <= 255; j++) ftab[(j << 8) + ss] |= SETMASK;
+         AssertH ( ((bbSize-1) >> shifts) <= 65535, 1002 );
       }
-      if (s->verbosity >= 4)
-         VPrintf3( "        %d pointers, %d sorted, %d scanned\n",
-                   nblock, numQSorted, nblock - numQSorted );
+
+      /*--
+         Step 4:
+         Now scan this big bucket [ss] so as to synthesise the
+         sorted order for small buckets [t, ss] for all t != ss.
+         This will avoid doing Real Work in subsequent Step 1's.
+      --*/
+      for (j = 0; j <= 255; j++)
+         copy[j] = ftab[(j << 8) + ss] & CLEARMASK;
+
+      m = ftab[(ss+1) << 8] & CLEARMASK;
+      for (j = ftab[ss << 8] & CLEARMASK; j < m; j++) {
+         k = ptr[j] - 1; if (k < 0) k += nblock;
+         c1 = (UChar)(block[k] >> 8);
+         if ( ! bigDone[c1] ) {
+            ptr[copy[c1]] = k;
+            copy[c1] ++;
+         }
+      }
+
+      for (j = 0; j <= 255; j++) ftab[(j << 8) + ss] |= SETMASK;
    }
+
+   if (verb >= 4)
+      VPrintf3 ( "        %d pointers, %d sorted, %d scanned\n",
+                 nblock, numQSorted, nblock - numQSorted );
 }
+
+#undef BIGFREQ
+#undef SETMASK
+#undef CLEARMASK
 
 
 /*---------------------------------------------*/
-static void randomiseBlock ( EState* s )
-{
-   Int32 i;
-   BZ_RAND_INIT_MASK;
-   for (i = 0; i < 256; i++) s->inUse[i] = False;
+/* Pre:
+      nblock > 0
+      arr2 exists for [0 .. nblock-1 +N_OVERSHOOT]
+      ((UInt16*)arr2) [0 .. nblock-1] [15:8] holds block
+      arr1 exists for [0 .. nblock-1]
 
-   for (i = 0; i < s->nblock; i++) {
-      BZ_RAND_UPD_MASK;
-      s->block[i] ^= BZ_RAND_MASK;
-      s->inUse[s->block[i]] = True;
-   }
-}
-
-
-/*---------------------------------------------*/
+   Post:
+      ((UInt16*)arr2) [0 .. nblock-1] [15:8] holds block
+      All other areas of block destroyed
+      ftab [ 0 .. 65536 ] destroyed
+      arr1 [0 .. nblock-1] holds sorted order
+*/
 void blockSort ( EState* s )
 {
-   Int32 i;
+   UInt32* ptr    = s->ptr; 
+   UInt16* block  = s->block;
+   UInt32* ftab   = s->ftab;
+   Int32   nblock = s->nblock;
+   Int32   verb   = s->verbosity;
+   Int32   wfact  = s->workFactor;
+   UInt16* quadrant;
+   Int32   budget;
+   Int32   budgetInit;
+   Int32   i;
 
-   s->workLimit       = s->workFactor * (s->nblock - 1);
-   s->workDone        = 0;
-   s->blockRandomised = False;
-   s->firstAttempt    = True;
+   if (nblock < 10000) {
+      for (i = 0; i < nblock; i++) block[i] <<= 8;
+      fallbackSort ( s->arr1, s->arr2, ftab, nblock, verb );
+   } else {
+      quadrant = &(block[nblock+BZ_N_OVERSHOOT]);
 
-   sortMain ( s );
+      /* (wfact-1) / 3 puts the default-factor-30
+         transition point at very roughly the same place as 
+         with v0.1 and v0.9.0.  
+         Not that it particularly matters any more, since the
+         resulting compressed stream is now the same regardless
+         of whether or not we use the main sort or fallback sort.
+      */
+      if (wfact < 1  ) wfact = 1;
+      if (wfact > 100) wfact = 100;
+      budgetInit = nblock * ((wfact-1) / 3);
+      budget = budgetInit;
 
-   if (s->verbosity >= 3)
-      VPrintf3( "      %d work, %d block, ratio %5.2f\n",
-                s->workDone, s->nblock-1, 
-                (float)(s->workDone) / (float)(s->nblock-1) );
-
-   if (s->workDone > s->workLimit && s->firstAttempt) {
-      if (s->verbosity >= 2)
-         VPrintf0( "    sorting aborted; randomising block\n" );
-      randomiseBlock ( s );
-      s->workLimit = s->workDone = 0;
-      s->blockRandomised = True;
-      s->firstAttempt = False;
-      sortMain ( s );
-      if (s->verbosity >= 3)
-         VPrintf3( "      %d work, %d block, ratio %f\n",
-                   s->workDone, s->nblock-1, 
-                   (float)(s->workDone) / (float)(s->nblock-1) );
+      mainSort ( ptr, block, quadrant, ftab, nblock, verb, &budget );
+      if (verb >= 3) 
+         VPrintf3 ( "      %d work, %d block, ratio %5.2f\n",
+                    budgetInit - budget,
+                    nblock, 
+                    (float)(budgetInit - budget) /
+                    (float)(nblock==0 ? 1 : nblock) ); 
+      if (budget < 0) {
+         if (verb >= 2) 
+            VPrintf0 ( "    too repetitive; using fallback"
+                       " sorting algorithm\n" );
+         fallbackSort ( s->arr1, s->arr2, ftab, nblock, verb );
+      }
    }
 
    s->origPtr = -1;
    for (i = 0; i < s->nblock; i++)
-       if (s->zptr[i] == 0)
-          { s->origPtr = i; break; };
+      if (ptr[i] == 0)
+         { s->origPtr = i; break; };
 
    AssertH( s->origPtr != -1, 1003 );
 }
+
 
 /*-------------------------------------------------------------*/
 /*--- end                                       blocksort.c ---*/

@@ -7,9 +7,9 @@
 /*--
   This program is bzip2recover, a program to attempt data 
   salvage from damaged files created by the accompanying
-  bzip2-0.9.0c program.
+  bzip2-0.9.5 program.
 
-  Copyright (C) 1996-1998 Julian R Seward.  All rights reserved.
+  Copyright (C) 1996-1999 Julian R Seward.  All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions
@@ -42,9 +42,9 @@
   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-  Julian Seward, Guildford, Surrey, UK.
+  Julian Seward, Cambridge, UK.
   jseward@acm.org
-  bzip2/libbzip2 version 0.9.0c of 18 October 1998
+  bzip2/libbzip2 version 0.9.5 of 24 May 1999
 --*/
 
 /*--
@@ -260,6 +260,12 @@ Bool endsInBz2 ( Char* name )
 #define BLOCK_ENDMARK_HI 0x00001772UL
 #define BLOCK_ENDMARK_LO 0x45385090UL
 
+
+UInt32 bStart[20000];
+UInt32 bEnd[20000];
+UInt32 rbStart[20000];
+UInt32 rbEnd[20000];
+
 Int32 main ( Int32 argc, Char** argv )
 {
    FILE*       inFile;
@@ -267,11 +273,6 @@ Int32 main ( Int32 argc, Char** argv )
    BitStream*  bsIn, *bsWr;
    Int32       currBlock, b, wrBlock;
    UInt32      bitsRead;
-   UInt32      bStart[20000];
-   UInt32      bEnd[20000];
-
-   UInt32      rbStart[20000];
-   UInt32      rbEnd[20000];
    Int32       rbCtr;
 
 
@@ -281,7 +282,7 @@ Int32 main ( Int32 argc, Char** argv )
    strcpy ( progName, argv[0] );
    inFileName[0] = outFileName[0] = 0;
 
-   fprintf ( stderr, "bzip2recover v0.9.0c: extracts blocks from damaged .bz2 files.\n" );
+   fprintf ( stderr, "bzip2recover 0.9.5d: extracts blocks from damaged .bz2 files.\n" );
 
    if (argc != 2) {
       fprintf ( stderr, "%s: usage is `%s damaged_file_name'.\n",
