@@ -1,0 +1,20 @@
+
+Windows 95 & Windows NT users:
+
+1.  There's a pre-built executable, bzip2.exe, which
+    should work.  You don't need to compile anything.
+    You can run the `test.bat' batch file to check
+    the executable is working ok, if you want.
+
+2.  The control-C signal catcher seems pretty dodgy
+    under Windows, at least for the executable supplied.
+    When it catches a control-C, bzip2 tries to delete
+    its output file, so you don't get left with a half-
+    baked file.  But this sometimes seems to fail
+    under Windows.  Caveat Emptor!  I think I am doing
+    something not-quite-right in the signal catching.
+    Windows-&-C gurus got any suggestions?
+
+    Control-C handling all seems to work fine under Unix.
+
+7 Aug 97
