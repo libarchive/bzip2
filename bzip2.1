@@ -1,21 +1,29 @@
 .PU
 .TH bzip2 1
 .SH NAME
-bzip2, bunzip2 \- a block-sorting file compressor, v0.1
+bzip2, bunzip2 \- a block-sorting file compressor, v0.9.0
+.br
+bzcat \- decompresses files to stdout
 .br
 bzip2recover \- recovers data from damaged bzip2 files
 
 .SH SYNOPSIS
 .ll +8
 .B bzip2
-.RB [ " \-cdfkstvVL123456789 " ]
+.RB [ " \-cdfkstvzVL123456789 " ]
 [
 .I "filenames \&..."
 ]
 .ll -8
 .br
 .B bunzip2
-.RB [ " \-kvsVL " ]
+.RB [ " \-fkvsVL " ]
+[
+.I "filenames \&..."
+]
+.br 
+.B bzcat
+.RB [ " \-s " ]
 [
 .I "filenames \&..."
 ]
@@ -24,7 +32,7 @@ bzip2recover \- recovers data from damaged bzip2 files
 .I "filename"
 
 .SH DESCRIPTION
-.I Bzip2
+.I bzip2
 compresses files using the Burrows-Wheeler block-sorting 
 text compression algorithm, and Huffman coding.
 Compression is generally considerably
@@ -38,7 +46,7 @@ those of
 .I GNU Gzip,
 but they are not identical.
 
-.I Bzip2 
+.I bzip2 
 expects a list of file names to accompany the command-line flags.  
 Each file is replaced by a compressed version of itself,
 with the name "original_name.bz2".
@@ -50,11 +58,11 @@ original file names, permissions and dates in filesystems
 which lack these concepts, or have serious file name length
 restrictions, such as MS-DOS.
 
-.I Bzip2
+.I bzip2
 and
 .I bunzip2
-will not overwrite existing files; if you want this to happen,
-you should delete them first.
+will by default not overwrite existing files; 
+if you want this to happen, specify the \-f flag.
 
 If no file names are specified,
 .I bzip2
@@ -64,7 +72,7 @@ In this case,
 will decline to write compressed output to a terminal, as
 this would be entirely incomprehensible and therefore pointless.
 
-.I Bunzip2
+.I bunzip2
 (or
 .I bzip2 \-d
 ) decompresses and restores all specified files whose names
@@ -73,12 +81,28 @@ Files without this suffix are ignored.
 Again, supplying no filenames
 causes decompression from standard input to standard output.
 
+.I bunzip2
+will correctly decompress a file which is the concatenation
+of two or more compressed files.  The result is the concatenation
+of the corresponding uncompressed files.  Integrity testing
+(\-t) of concatenated compressed files is also supported.
+
 You can also compress or decompress files to
 the standard output by giving the \-c flag.
-You can decompress multiple files like this, but you may
-only compress a single file this way, since it would otherwise
-be difficult to separate out the compressed representations of
-the original files.
+Multiple files may be compressed and decompressed like this.
+The resulting outputs are fed sequentially to stdout.
+Compression of multiple files in this manner generates
+a stream containing multiple compressed file representations.
+Such a stream can be decompressed correctly only by
+.I bzip2
+version 0.9.0 or later.  Earlier versions of
+.I bzip2
+will stop after decompressing the first file in the stream.
+
+.I bzcat
+(or
+.I bzip2 \-dc
+) decompresses all specified files to the standard output.
 
 Compression is always performed, even if the compressed file is
 slightly larger than the original.  Files of less than about
@@ -132,7 +156,7 @@ Compression and decompression requirements, in bytes, can be estimated as:
 
       Compression:   400k + ( 7 x block size )
 
-      Decompression: 100k + ( 5 x block size ), or
+      Decompression: 100k + ( 4 x block size ), or
 .br
                      100k + ( 2.5 x block size )
 
@@ -147,7 +171,7 @@ choice of block size.
 
 For files compressed with the default 900k block size, 
 .I bunzip2
-will require about 4600 kbytes to decompress.
+will require about 3700 kbytes to decompress.
 To support decompression of any file on a 4 megabyte machine,
 .I bunzip2
 has an option to decompress using approximately half this
@@ -168,8 +192,8 @@ For example, compressing a file 20,000 bytes long with the flag
 \-9
 will cause the compressor to allocate around
 6700k of memory, but only touch 400k + 20000 * 7 = 540
-kbytes of it.  Similarly, the decompressor will allocate 4600k but
-only touch 100k + 20000 * 5 = 200 kbytes.
+kbytes of it.  Similarly, the decompressor will allocate 3700k but
+only touch 100k + 20000 * 4 = 180 kbytes.
 
 Here is a table which summarises the maximum memory usage for 
 different block sizes.  Also recorded is the total compressed
@@ -182,70 +206,72 @@ Corpus is dominated by smaller files.
            Compress   Decompress   Decompress   Corpus
     Flag     usage      usage       -s usage     Size
 
-     -1      1100k       600k         350k      914704
-     -2      1800k      1100k         600k      877703
-     -3      2500k      1600k         850k      860338
-     -4      3200k      2100k        1100k      846899
-     -5      3900k      2600k        1350k      845160
-     -6      4600k      3100k        1600k      838626
-     -7      5400k      3600k        1850k      834096
-     -8      6000k      4100k        2100k      828642
-     -9      6700k      4600k        2350k      828642
+     -1      1100k       500k         350k      914704
+     -2      1800k       900k         600k      877703
+     -3      2500k      1300k         850k      860338
+     -4      3200k      1700k        1100k      846899
+     -5      3900k      2100k        1350k      845160
+     -6      4600k      2500k        1600k      838626
+     -7      5400k      2900k        1850k      834096
+     -8      6000k      3300k        2100k      828642
+     -9      6700k      3700k        2350k      828642
 
 .SH OPTIONS
 .TP
-.B \-c  --stdout
+.B \-c --stdout
 Compress or decompress to standard output.  \-c will decompress
 multiple files to stdout, but will only compress a single file to
 stdout.
 .TP
 .B \-d --decompress
 Force decompression.
-.I Bzip2
-and
+.I bzip2,
 .I bunzip2
-are really the same program, and the decision about whether to
-compress or decompress is done on the basis of which name is
+and
+.I bzcat
+are really the same program, and the decision about what actions
+to take is done on the basis of which name is
 used.  This flag overrides that mechanism, and forces
 .I bzip2
 to decompress.
 .TP 
-.B \-f --compress
+.B \-z --compress
 The complement to \-d: forces compression, regardless of the invokation
 name.
 .TP
 .B \-t --test
 Check integrity of the specified file(s), but don't decompress them.
-This really performs a trial decompression and throws away the result,
-using the low-memory decompression algorithm (see \-s).
+This really performs a trial decompression and throws away the result.
+.TP
+.B \-f --force
+Force overwrite of output files.  Normally,
+.I bzip2
+will not overwrite existing output files.
 .TP
 .B \-k --keep
 Keep (don't delete) input files during compression or decompression.
 .TP
 .B \-s --small
-Reduce memory usage, both for compression and decompression.
-Files are decompressed using a modified algorithm which only
+Reduce memory usage, for compression, decompression and
+testing.
+Files are decompressed and tested using a modified algorithm which only
 requires 2.5 bytes per block byte.  This means any file can be
-decompressed in 2300k of memory, albeit somewhat more slowly than
-usual.
+decompressed in 2300k of memory, albeit at about half the normal
+speed.
 
 During compression, -s selects a block size of 200k, which limits
 memory use to around the same figure, at the expense of your
 compression ratio.  In short, if your machine is low on memory
 (8 megabytes or less), use -s for everything.  See
 MEMORY MANAGEMENT above.
-
 .TP
 .B \-v --verbose
 Verbose mode -- show the compression ratio for each file processed.
 Further \-v's increase the verbosity level, spewing out lots of
 information which is primarily of interest for diagnostic purposes.
 .TP
-.B \-L --license
+.B \-L --license -V --version
 Display the software version, license terms and conditions.
-.TP
-.B \-V --version
-Same as \-L.
 .TP
 .B \-1 to \-9 
 Set the block size to 100 k, 200 k .. 900 k when
@@ -329,10 +355,6 @@ to compress the latter.
 If you do get a file which causes severe slowness in compression,
 try making the block size as small as possible, with flag \-1.
 
-Incompressible or virtually-incompressible data may decompress
-rather more slowly than one would hope.  This is due to 
-a naive implementation of the move-to-front coder.
-
 .I bzip2
 usually allocates several megabytes of memory to operate in,
 and then charges all over it in a fairly random fashion.  This
@@ -346,28 +368,19 @@ I imagine
 .I bzip2
 will perform best on machines with very large caches.
 
-Test mode (\-t) uses the low-memory decompression algorithm
-(\-s).  This means test mode does not run as fast as it could;
-it could run as fast as the normal decompression machinery.
-This could easily be fixed at the cost of some code bloat.
-
 .SH CAVEATS
 I/O error messages are not as helpful as they could be.
 .I Bzip2
 tries hard to detect I/O errors and exit cleanly, but the
 details of what the problem is sometimes seem rather misleading.
 
-This manual page pertains to version 0.1 of 
+This manual page pertains to version 0.9.0 of 
 .I bzip2.  
-It may well happen that some future version will
-use a different compressed file format.  If you try to 
-decompress, using 0.1, a .bz2 file created with some
-future version which uses a different compressed file format,
-0.1 will complain that your file "is not a bzip2 file".
-If that happens, you should obtain a more recent version
-of 
-.I bzip2
-and use that to decompress the file.
+Compressed data created by this version is entirely forwards and
+backwards compatible with the previous public release, version 0.1pl2,
+but with the following exception: 0.9.0 can correctly decompress
+multiple concatenated compressed files.  0.1pl2 cannot do this; it
+will stop after decompressing just the first file in the stream.
 
 Wildcard expansion for Windows 95 and NT 
 is flaky.
@@ -377,63 +390,25 @@ uses 32-bit integers to represent bit positions in
 compressed files, so it cannot handle compressed files
 more than 512 megabytes long.  This could easily be fixed.
 
-.I bzip2recover
-sometimes reports a very small, incomplete final block.
-This is spurious and can be safely ignored.
-
-.SH RELATIONSHIP TO bzip-0.21
-This program is a descendant of the 
-.I bzip
-program, version 0.21, which I released in August 1996.  
-The primary difference of
-.I bzip2
-is its avoidance of the possibly patented algorithms
-which were used in 0.21.  
-.I bzip2
-also brings various useful refinements (\-s, \-t),
-uses less memory, decompresses significantly faster, and
-has support for recovering data from damaged files.
-
-Because
-.I bzip2
-uses Huffman coding to construct the compressed bitstream,
-rather than the arithmetic coding used in 0.21,
-the compressed representations generated by the two programs
-are incompatible, and they will not interoperate.  The change
-in suffix from .bz to .bz2 reflects this.  It would have been
-helpful to at least allow
-.I bzip2
-to decompress files created by 0.21, but this would
-defeat the primary aim of having a patent-free compressor.
-
-For a more precise statement about patent issues in
-bzip2, please see the README file in the distribution.
-
-Huffman coding necessarily involves some coding inefficiency
-compared to arithmetic coding.  This means that
-.I bzip2
-compresses about 1% worse than 0.21, an unfortunate but
-unavoidable fact-of-life.  On the other hand, decompression
-is approximately 50% faster for the same reason, and the
-change in file format gave an opportunity to add data-recovery
-features.  So it is not all bad.
-
 .SH AUTHOR
 Julian Seward, jseward@acm.org.
 
+http://www.muraroa.demon.co.uk
+
 The ideas embodied in 
-.I bzip
-and
 .I bzip2
 are due to (at least) the following people:
 Michael Burrows and David Wheeler (for the block sorting
 transformation), David Wheeler (again, for the Huffman coder),
-Peter Fenwick (for the structured coding model in 0.21, 
+Peter Fenwick (for the structured coding model in the original
+.I bzip, 
 and many refinements),
 and
 Alistair Moffat, Radford Neal and Ian Witten (for the arithmetic
-coder in 0.21).  I am much indebted for their help, support and advice.
-See the file ALGORITHMS in the source distribution for pointers to
+coder in the original
+.I bzip).  
+I am much indebted for their help, support and advice.
+See the manual in the source distribution for pointers to
 sources of documentation.
 Christian von Roques encouraged me to look for faster
 sorting algorithms, so as to speed up compression.

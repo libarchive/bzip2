@@ -7,43 +7,63 @@
 /*--
   This program is bzip2recover, a program to attempt data 
   salvage from damaged files created by the accompanying
-  bzip2-0.1 program.
+  bzip2-0.9.0c program.
 
-  Copyright (C) 1996, 1997 by Julian Seward.
-     Guildford, Surrey, UK
-     email: jseward@acm.org
+  Copyright (C) 1996-1998 Julian R Seward.  All rights reserved.
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+  1. Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
 
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  2. The origin of this software must not be misrepresented; you must 
+     not claim that you wrote the original software.  If you use this 
+     software in a product, an acknowledgment in the product 
+     documentation would be appreciated but is not required.
 
-  The GNU General Public License is contained in the file LICENSE.
+  3. Altered source versions must be plainly marked as such, and must
+     not be misrepresented as being the original software.
+
+  4. The name of the author may not be used to endorse or promote 
+     products derived from this software without specific prior written 
+     permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+  GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  Julian Seward, Guildford, Surrey, UK.
+  jseward@acm.org
+  bzip2/libbzip2 version 0.9.0c of 18 October 1998
 --*/
 
+/*--
+  This program is a complete hack and should be rewritten
+  properly.  It isn't very complicated.
+--*/
 
 #include <stdio.h>
 #include <errno.h>
-#include <malloc.h>
 #include <stdlib.h>
-#include <strings.h>  /*-- or try string.h --*/
+#include <string.h>
 
-#define UInt32  unsigned int
-#define Int32   int
-#define UChar   unsigned char
-#define Char    char
-#define Bool    unsigned char
-#define True    1
-#define False   0
+typedef  unsigned int   UInt32;
+typedef  int            Int32;
+typedef  unsigned char  UChar;
+typedef  char           Char;
+typedef  unsigned char  Bool;
+#define True    ((Bool)1)
+#define False   ((Bool)0)
 
 
 Char inFileName[2000];
@@ -191,8 +211,9 @@ void bsClose ( BitStream* bs )
       if (retVal == EOF) writeError();
    }
    retVal = fclose ( bs->handle );
-   if (retVal == EOF)
+   if (retVal == EOF) {
       if (bs->mode == 'w') writeError(); else readError();
+   }
    free ( bs );
 }
 
@@ -248,13 +269,19 @@ Int32 main ( Int32 argc, Char** argv )
    UInt32      bitsRead;
    UInt32      bStart[20000];
    UInt32      bEnd[20000];
+
+   UInt32      rbStart[20000];
+   UInt32      rbEnd[20000];
+   Int32       rbCtr;
+
+
    UInt32      buffHi, buffLo, blockCRC;
    Char*       p;
 
    strcpy ( progName, argv[0] );
    inFileName[0] = outFileName[0] = 0;
 
-   fprintf ( stderr, "bzip2recover: extracts blocks from damaged .bz2 files.\n" );
+   fprintf ( stderr, "bzip2recover v0.9.0c: extracts blocks from damaged .bz2 files.\n" );
 
    if (argc != 2) {
       fprintf ( stderr, "%s: usage is `%s damaged_file_name'.\n",
@@ -277,6 +304,8 @@ Int32 main ( Int32 argc, Char** argv )
    buffHi = buffLo = 0;
    currBlock = 0;
    bStart[currBlock] = 0;
+
+   rbCtr = 0;
 
    while (True) {
       b = bsGetBit ( bsIn );
@@ -303,19 +332,25 @@ Int32 main ( Int32 argc, Char** argv )
          if (bitsRead > 49)
             bEnd[currBlock] = bitsRead-49; else
             bEnd[currBlock] = 0;
-         if (currBlock > 0)
+         if (currBlock > 0 &&
+	     (bEnd[currBlock] - bStart[currBlock]) >= 130) {
             fprintf ( stderr, "   block %d runs from %d to %d\n",
-                      currBlock,  bStart[currBlock], bEnd[currBlock] );
+                      rbCtr+1,  bStart[currBlock], bEnd[currBlock] );
+            rbStart[rbCtr] = bStart[currBlock];
+            rbEnd[rbCtr] = bEnd[currBlock];
+            rbCtr++;
+         }
          currBlock++;
+
          bStart[currBlock] = bitsRead;
       }
    }
 
    bsClose ( bsIn );
 
-   /*-- identified blocks run from 1 to currBlock inclusive. --*/
+   /*-- identified blocks run from 1 to rbCtr inclusive. --*/
 
-   if (currBlock < 1) {
+   if (rbCtr < 1) {
       fprintf ( stderr,
                 "%s: sorry, I couldn't find any block boundaries.\n",
                 progName );
@@ -336,23 +371,23 @@ Int32 main ( Int32 argc, Char** argv )
 
    bitsRead = 0;
    outFile = NULL;
-   wrBlock = 1;
+   wrBlock = 0;
    while (True) {
       b = bsGetBit(bsIn);
       if (b == 2) break;
       buffHi = (buffHi << 1) | (buffLo >> 31);
       buffLo = (buffLo << 1) | (b & 1);
-      if (bitsRead == 47+bStart[wrBlock]) 
+      if (bitsRead == 47+rbStart[wrBlock]) 
          blockCRC = (buffHi << 16) | (buffLo >> 16);
 
-      if (outFile != NULL && bitsRead >= bStart[wrBlock]
-                          && bitsRead <= bEnd[wrBlock]) {
+      if (outFile != NULL && bitsRead >= rbStart[wrBlock]
+                          && bitsRead <= rbEnd[wrBlock]) {
          bsPutBit ( bsWr, b );
       }
 
       bitsRead++;
 
-      if (bitsRead == bEnd[wrBlock]+1) {
+      if (bitsRead == rbEnd[wrBlock]+1) {
          if (outFile != NULL) {
             bsPutUChar ( bsWr, 0x17 ); bsPutUChar ( bsWr, 0x72 );
             bsPutUChar ( bsWr, 0x45 ); bsPutUChar ( bsWr, 0x38 );
@@ -360,18 +395,18 @@ Int32 main ( Int32 argc, Char** argv )
             bsPutUInt32 ( bsWr, blockCRC );
             bsClose ( bsWr );
          }
-         if (wrBlock >= currBlock) break;
+         if (wrBlock >= rbCtr) break;
          wrBlock++;
       } else
-      if (bitsRead == bStart[wrBlock]) {
+      if (bitsRead == rbStart[wrBlock]) {
          outFileName[0] = 0;
-         sprintf ( outFileName, "rec%4d", wrBlock );
+         sprintf ( outFileName, "rec%4d", wrBlock+1 );
          for (p = outFileName; *p != 0; p++) if (*p == ' ') *p = '0';
          strcat ( outFileName, inFileName );
          if ( !endsInBz2(outFileName)) strcat ( outFileName, ".bz2" );
 
          fprintf ( stderr, "   writing block %d to `%s' ...\n",
-                           wrBlock, outFileName );
+                           wrBlock+1, outFileName );
 
          outFile = fopen ( outFileName, "wb" );
          if (outFile == NULL) {

@@ -1,194 +1,61 @@
 
-GREETINGS!
 
-   This is the README for bzip2, my block-sorting file compressor,
-   version 0.1.  
+This is the README for bzip2, a block-sorting file compressor, version
+0.9.0.  This version is fully compatible with the previous public
+release, bzip2-0.1pl2.
 
-   bzip2 is distributed under the GNU General Public License version 2;
-   for details, see the file LICENSE.  Pointers to the algorithms used
-   are in ALGORITHMS.  Instructions for use are in bzip2.1.preformatted.
+bzip2-0.9.0 is distributed under a BSD-style license.  For details,
+see the file LICENSE.
 
-   Please read all of this file carefully.
+Complete documentation is available in Postscript form (manual.ps)
+or html (manual_toc.html).  A plain-text version of the manual page is
+available as bzip2.txt.
 
 
+HOW TO BUILD -- UNIX
 
-HOW TO BUILD
+Type `make'.
 
-   -- for UNIX:
+This creates binaries "bzip2" and "bzip2recover".
 
-        Type `make'.     (tough, huh? :-)
+It also runs four compress-decompress tests to make sure things are
+working properly.  If all goes well, you should be up & running.
+Please be sure to read the output from `make' just to be sure that the
+tests went ok.
 
-        This creates binaries "bzip2", and "bunzip2",
-        which is a symbolic link to "bzip2".
+To install bzip2 properly:
 
-        It also runs four compress-decompress tests to make sure
-        things are working properly.  If all goes well, you should be up &
-        running.  Please be sure to read the output from `make'
-        just to be sure that the tests went ok.
+* Copy the binaries "bzip2" and "bzip2recover" to a publically visible 
+  place, possibly /usr/bin or /usr/local/bin.
 
-        To install bzip2 properly:
+* In that directory, make "bunzip2" and "bzcat" be symbolic links
+  to "bzip2".
 
-           -- Copy the binary "bzip2" to a publically visible place,
-              possibly /usr/bin, /usr/common/bin or /usr/local/bin.
+* Copy the manual page, bzip2.1, to the relevant place.
+  Probably the right place is /usr/man/man1/.
 
-           -- In that directory, make "bunzip2" be a symbolic link
-              to "bzip2".
+If you want to program with the library, you'll need to copy libbz2.a
+and bzlib.h to /usr/lib and /usr/include respectively.
+  
 
-           -- Copy the manual page, bzip2.1, to the relevant place.
-              Probably the right place is /usr/man/man1/.
-   
-   -- for Windows 95 and NT: 
+HOW TO BUILD -- Windows 95, NT, DOS, Mac, etc.
 
-        For a start, do you *really* want to recompile bzip2?  
-        The standard distribution includes a pre-compiled version
-        for Windows 95 and NT, `bzip2.exe'.
-
-        This executable was created with Jacob Navia's excellent
-        port to Win32 of Chris Fraser & David Hanson's excellent
-        ANSI C compiler, "lcc".  You can get to it at the pages
-        of the CS department of Princeton University, 
-        www.cs.princeton.edu.  
-        I have not tried to compile this version of bzip2 with
-        a commercial C compiler such as MS Visual C, as I don't
-        have one available.
-
-        Note that lcc is designed primarily to be portable and
-        fast.  Code quality is a secondary aim, so bzip2.exe
-        runs perhaps 40% slower than it could if compiled with
-        a good optimising compiler.
-
-        I compiled a previous version of bzip (0.21) with Borland
-        C 5.0, which worked fine, and with MS VC++ 2.0, which
-        didn't.  Here is an comment from the README for bzip-0.21.
-
-           MS VC++ 2.0's optimising compiler has a bug which, at 
-           maximum optimisation, gives an executable which produces 
-           garbage compressed files.  Proceed with caution. 
-           I do not know whether or not this happens with later 
-           versions of VC++.
-
-           Edit the defines starting at line 86 of bzip.c to 
-           select your platform/compiler combination, and then compile.
-           Then check that the resulting executable (assumed to be 
-           called bzip.exe) works correctly, using the SELFTEST.BAT file.  
-           Bearing in mind the previous paragraph, the self-test is
-           important.
-
-        Note that the defines which bzip-0.21 had, to support 
-        compilation with VC 2.0 and BC 5.0, are gone.  Windows
-        is not my preferred operating system, and I am, for the
-        moment, content with the modestly fast executable created
-        by lcc-win32.
-
-   A manual page is supplied, unformatted (bzip2.1),
-   preformatted (bzip2.1.preformatted), and preformatted
-   and sanitised for MS-DOS (bzip2.txt).
-
-   
-
-COMPILATION NOTES
-
-   bzip2 should work on any 32 or 64-bit machine.  It is known to work
-   [meaning: it has compiled and passed self-tests] on the 
-   following platform-os combinations:
-
-      Intel i386/i486        running Linux 2.0.21
-      Sun Sparcs (various)   running SunOS 4.1.4 and Solaris 2.5
-      Intel i386/i486        running Windows 95 and NT
-      DEC Alpha              running Digital Unix 4.0
-
-   Following the release of bzip-0.21, many people mailed me
-   from around the world to say they had made it work on all sorts
-   of weird and wonderful machines.  Chances are, if you have
-   a reasonable ANSI C compiler and a 32-bit machine, you can
-   get it to work.
-
-   The #defines starting at around line 82 of bzip2.c supply some
-   degree of platform-independance.  If you configure bzip2 for some
-   new far-out platform which is not covered by the existing definitions,
-   please send me the relevant definitions.
-
-   I recommend GNU C for compilation.  The code is standard ANSI C,
-   except for the Unix-specific file handling, so any ANSI C compiler
-   should work.  Note however that the many routines marked INLINE
-   should be inlined by your compiler, else performance will be very
-   poor.  Asking your compiler to unroll loops gives some
-   small improvement too; for gcc, the relevant flag is
-   -funroll-loops.
-
-   On a 386/486 machines, I'd recommend giving gcc the
-   -fomit-frame-pointer flag; this liberates another register for
-   allocation, which measurably improves performance.
-
-   I used the abovementioned lcc compiler to develop bzip2.
-   I would highly recommend this compiler for day-to-day development;
-   it is fast, reliable, lightweight, has an excellent profiler,
-   and is generally excellent.  And it's fun to retarget, if you're
-   into that kind of thing.
-
-   If you compile bzip2 on a new platform or with a new compiler,
-   please be sure to run the four compress-decompress tests, either
-   using the Makefile, or with the test.bat (MSDOS) or test.cmd (OS/2)
-   files.  Some compilers have been seen to introduce subtle bugs
-   when optimising, so this check is important.  Ideally you should
-   then go on to test bzip2 on a file several megabytes or even
-   tens of megabytes long, just to be 110% sure.  ``Professional
-   programmers are paranoid programmers.'' (anon).
-
+It's difficult for me to support compilation on all these platforms.
+My approach is to collect binaries for these platforms, and put them
+on my web page (http://www.muraroa.demon.co.uk).  Look there.
 
 
 VALIDATION
 
-   Correct operation, in the sense that a compressed file can always be
-   decompressed to reproduce the original, is obviously of paramount
-   importance.  To validate bzip2, I used a modified version of 
-   Mark Nelson's churn program.  Churn is an automated test driver
-   which recursively traverses a directory structure, using bzip2 to
-   compress and then decompress each file it encounters, and checking
-   that the decompressed data is the same as the original.  As test 
-   material, I used several runs over several filesystems of differing
-   sizes.
+Correct operation, in the sense that a compressed file can always be
+decompressed to reproduce the original, is obviously of paramount
+importance.  To validate bzip2, I used a modified version of Mark
+Nelson's churn program.  Churn is an automated test driver which
+recursively traverses a directory structure, using bzip2 to compress
+and then decompress each file it encounters, and checking that the
+decompressed data is the same as the original.  There are more details
+in Section 4 of the user guide.
 
-   One set of tests was done on my base Linux filesystem,
-   410 megabytes in 23,000 files.  There were several runs over
-   this filesystem, in various configurations designed to break bzip2.
-   That filesystem also contained some specially constructed test
-   files designed to exercise boundary cases in the code.
-   This included files of zero length, various long, highly repetitive 
-   files, and some files which generate blocks with all values the same.
-
-   The other set of tests was done just with the "normal" configuration,
-   but on a much larger quantity of data.
-
-      Tests are:
-
-         Linux FS, 410M, 23000 files
-
-         As above, with --repetitive-fast
-
-         As above, with -1
-
-         Low level disk image of a disk containing
-            Windows NT4.0; 420M in a single huge file
-
-         Linux distribution, incl Slackware, 
-            all GNU sources.   1900M in 2300 files.
-
-         Approx ~100M compiler sources and related
-            programming tools, running under Purify.
-
-         About 500M of data in 120 files of around
-            4 M each.  This is raw data from a 
-            biomagnetometer (SQUID-based thing).
-
-      Overall, total volume of test data is about
-         3300 megabytes in 25000 files.
-
-   The distribution does four tests after building bzip.  These tests
-   include test decompressions of pre-supplied compressed files, so
-   they not only test that bzip works correctly on the machine it was
-   built on, but can also decompress files compressed on a different
-   machine.  This guards against unforseen interoperability problems.
 
 
 Please read and be aware of the following:
@@ -234,14 +101,30 @@ PATENTS:
 End of legalities.
 
 
+WHAT'S NEW IN 0.9.0 (as compared to 0.1pl2) ?
+
+   * Approx 10% faster compression, 30% faster decompression
+   * -t (test mode) is a lot quicker
+   * Can decompress concatenated compressed files
+   * Programming interface, so programs can directly read/write .bz2 files
+   * Less restrictive (BSD-style) licensing
+   * Flag handling more compatible with GNU gzip
+   * Much more documentation, i.e., a proper user manual
+   * Hopefully, improved portability (at least of the library)
+
+
 I hope you find bzip2 useful.  Feel free to contact me at
    jseward@acm.org
 if you have any suggestions or queries.  Many people mailed me with
-comments, suggestions and patches after the releases of 0.15 and 0.21, 
-and the changes in bzip2 are largely a result of this feedback.
-I thank you for your comments.
+comments, suggestions and patches after the releases of bzip-0.15,
+bzip-0.21 and bzip2-0.1pl2, and the changes in bzip2 are largely a
+result of this feedback.  I thank you for your comments.
+
+At least for the time being, bzip2's "home" is 
+http://www.muraroa.demon.co.uk.
 
 Julian Seward
+jseward@acm.org
 
 Manchester, UK
 18 July 1996 (version 0.15)
@@ -250,4 +133,5 @@ Manchester, UK
 Guildford, Surrey, UK
 7 August 1997 (bzip2, version 0.1)
 29 August 1997 (bzip2, version 0.1pl2)
+23 August 1998 (bzip2, version 0.9.0)
 
