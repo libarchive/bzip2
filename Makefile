@@ -2,7 +2,7 @@
 CC = gcc
 SH = /bin/sh
 
-CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -Wall -Winline -W
+CFLAGS = -O3 -fomit-frame-pointer -funroll-loops
 
 
 

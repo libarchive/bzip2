@@ -8,7 +8,7 @@ GREETINGS!
    for details, see the file LICENSE.  Pointers to the algorithms used
    are in ALGORITHMS.  Instructions for use are in bzip2.1.preformatted.
 
-   Please read this file carefully.
+   Please read all of this file carefully.
 
 
 
@@ -223,7 +223,15 @@ DISCLAIMER:
    I very much hope the opposite is true.  bzip2 has been carefully
    constructed and extensively tested.
 
-End of nasty legalities.
+
+PATENTS:
+
+   To the best of my knowledge, bzip2 does not use any patented
+   algorithms.  However, I do not have the resources available to
+   carry out a full patent search.  Therefore I cannot give any
+   guarantee of the above statement.
+
+End of legalities.
 
 
 I hope you find bzip2 useful.  Feel free to contact me at
@@ -240,4 +248,6 @@ Manchester, UK
 25 August 1996 (version 0.21)
 
 Guildford, Surrey, UK
-7 August 1997 (bzip2, version 0.0)
+7 August 1997 (bzip2, version 0.1)
+29 August 1997 (bzip2, version 0.1pl2)
+

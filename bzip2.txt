@@ -425,6 +425,9 @@ RELATIONSHIP TO bzip-0.21
        to decompress files created by 0.21, but this would defeat
        the primary aim of having a patent-free compressor.
 
+       For a more precise statement about patent issues in bzip2,
+       please see the README file in the distribution.
+
        Huffman  coding  necessarily  involves some coding ineffi-
        ciency compared to arithmetic  coding.   This  means  that
        bzip2  compresses about 1% worse than 0.21, an unfortunate

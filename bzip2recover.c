@@ -7,7 +7,7 @@
 /*--
   This program is bzip2recover, a program to attempt data 
   salvage from damaged files created by the accompanying
-  bzip2 program.
+  bzip2-0.1 program.
 
   Copyright (C) 1996, 1997 by Julian Seward.
      Guildford, Surrey, UK
