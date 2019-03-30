@@ -369,7 +369,7 @@ CAVEATS
 AUTHOR
        Julian Seward, jseward@acm.org
 
-       http://www.bzip.org
+       https://sourceware.org/bzip2/
 
        The ideas embodied in bzip2 are due to (at least) the fol-
        lowing  people: Michael Burrows and David Wheeler (for the

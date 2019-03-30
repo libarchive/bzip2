@@ -1,5 +1,5 @@
 <!-- misc. strings -->
-<!ENTITY bz-url "http://www.bzip.org">
+<!ENTITY bz-url "https://sourceware.org/bzip2/">
 <!ENTITY bz-email "jseward@acm.org">
 <!ENTITY bz-lifespan "1996-2010">
 

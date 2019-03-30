@@ -73,7 +73,7 @@ HOW TO BUILD -- Windows 95, NT, DOS, Mac, etc.
 
 It's difficult for me to support compilation on all these platforms.
 My approach is to collect binaries for these platforms, and put them
-on the master web site (http://www.bzip.org).  Look there.  However
+on the master web site (https://sourceware.org/bzip2/).  Look there.  However
 (FWIW), bzip2-1.0.X is very standard ANSI C and should compile
 unmodified with MS Visual C.  If you have difficulties building, you
 might want to read README.COMPILATION.PROBLEMS.
@@ -194,7 +194,7 @@ bzip-0.21, and bzip2 versions 0.1pl2, 0.9.0, 0.9.5, 1.0.0, 1.0.1,
 1.0.2 and 1.0.3, and the changes in bzip2 are largely a result of this
 feedback.  I thank you for your comments.
 
-bzip2's "home" is http://www.bzip.org/
+bzip2's "home" is https://sourceware.org/bzip2/
 
 Julian Seward
 jseward@acm.org
