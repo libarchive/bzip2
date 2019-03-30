@@ -7,7 +7,7 @@ This file is part of bzip2/libbzip2, a program and library for
 lossless, block-sorting data compression.
 
 bzip2/libbzip2 version 1.0.6 of 6 September 2010
-Copyright (C) 1996-2010 Julian Seward <jseward@bzip.org>
+Copyright (C) 1996-2010 Julian Seward <jseward@acm.org>
 
 Please read the WARNING, DISCLAIMER and PATENTS sections in this file.
 
@@ -187,7 +187,7 @@ WHAT'S NEW IN 1.0.6 ?
 
 
 I hope you find bzip2 useful.  Feel free to contact me at
-   jseward@bzip.org
+   jseward@acm.org
 if you have any suggestions or queries.  Many people mailed me with
 comments, suggestions and patches after the releases of bzip-0.15,
 bzip-0.21, and bzip2 versions 0.1pl2, 0.9.0, 0.9.5, 1.0.0, 1.0.1,
@@ -197,7 +197,7 @@ feedback.  I thank you for your comments.
 bzip2's "home" is http://www.bzip.org/
 
 Julian Seward
-jseward@bzip.org
+jseward@acm.org
 Cambridge, UK.
 
 18     July 1996 (version 0.15)

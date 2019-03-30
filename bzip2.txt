@@ -367,7 +367,7 @@ CAVEATS
 
 
 AUTHOR
-       Julian Seward, jsewardbzip.org.
+       Julian Seward, jseward@acm.org
 
        http://www.bzip.org
 
