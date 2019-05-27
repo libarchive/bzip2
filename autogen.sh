@@ -1,4 +1,3 @@
-touch AUTHORS
 touch ChangeLog
 libtoolize --force
 aclocal
