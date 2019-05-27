@@ -91,9 +91,11 @@ typedef
 #   endif
 #else
 #   define BZ_API(func) func
-#   define BZ_EXTERN extern
 #endif
 
+#ifndef BZ_EXTERN
+#define BZ_EXTERN extern
+#endif
 
 /*-- Core (low-level) library functions --*/
 
