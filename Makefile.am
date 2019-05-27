@@ -1,6 +1,5 @@
 ACLOCAL_AMFLAGS = -I m4
 lib_LTLIBRARIES = libbz2.la
-AM_CFLAGS = $(CFLAG_VISIBILITY)
 libbz2_la_SOURCES = \
 	blocksort.c \
 	huffman.c \
