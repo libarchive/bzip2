@@ -1,4 +1,3 @@
-mv CHANGES NEWS
 touch AUTHORS
 touch ChangeLog
 libtoolize --force
