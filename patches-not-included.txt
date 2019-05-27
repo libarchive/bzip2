@@ -1,0 +1,13 @@
+These are the patches from openSUSE that are not included in this Git
+repository:
+
+* bzip2-point-to-doc-pkg.patch - modifies the README file to mention a
+  bzip2-doc package instead of the bzip2.txt file from the source
+  distribution.  This is suitable for distributions which repackage
+  the original files into different packages.
+
+* bzip2-ocloexec.patch - Adds an "e" to the open mode string for
+  fopen(), with the intention of using O_CLOEXEC for bzopen() but not
+  for bzdopen().  This is a Linux-ism; maybe this needs to be done
+  with fcntl() on other systems?
+
