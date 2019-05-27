@@ -1,4 +1,3 @@
-mv LICENSE COPYING
 mv CHANGES NEWS
 touch AUTHORS
 touch ChangeLog
