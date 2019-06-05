@@ -1,22 +1,20 @@
-bzip2 autoconfiscated
-=====================
+bzip2 with autotools
+====================
 
-Temporarily at http://ftp.suse.com/pub/people/sbrabec/bzip2/ expecting
-that it will become a new upstream version to prevent per-distribution
-shared library patching done by nearly each Linux vendor separately.
-
-Autoconfiscation brings standard ./configure ; make ; make install
-installation, seamless support of DESTDIR, automatic check for supported
-CFLAGS, standard shared library support, automatic large files CFLAGS
-check and all things that are supported by automake.
+Switching bzip2 to autotools brings standard "./configure ; make ;
+make install" installation, seamless support of DESTDIR, automatic
+check for supported CFLAGS, standard shared library support, automatic
+large files CFLAGS check, and all things that are supported by
+automake.
 
 It makes obsolete Makefile-libbz2_so and README.COMPILATION.PROBLEMS.
 Now configure should automatically detect correct build flags.
 
 In case of any problem or question with autotools support feel free to
-contact me: Stanislav Brabec <sbrabec@suse.cz>
+contact me: Stanislav Brabec <sbrabec@suse.cz>, or
+Federico Mena Quintero <federico@gnome.org>.
 
-Autoconfiscated version binaries are exactly equal to
+Autotools version binaries are exactly equal to
 bzip2-1.0.6.tar.gz. There are only few changes. See below.
 
 
