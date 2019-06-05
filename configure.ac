@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.57])
-AC_INIT([bzip2], [1.0.6], [Julian Seward <jseward@bzip.org>])
+AC_INIT([bzip2], [1.0.7], [Julian Seward <jseward@bzip.org>])
 BZIP2_LT_CURRENT=1
 BZIP2_LT_REVISION=6
 BZIP2_LT_AGE=0
