@@ -70,7 +70,7 @@ uninstall-hook:
 	rm -f $(DESTDIR)$(mandir)/man1/`echo "bzless" | sed 's,^.*/,,;$(transform)'`.1
 	rm -f $(DESTDIR)$(mandir)/man1/`echo "bzcmp" | sed 's,^.*/,,;$(transform)'`.1
 
-test: bzip2
+check-local: bzip2
 	@cat $(srcdir)/words1
 	./bzip2 -1  <$(srcdir)/sample1.ref >sample1.rb2
 	./bzip2 -2  <$(srcdir)/sample2.ref >sample2.rb2
