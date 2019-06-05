@@ -9,7 +9,7 @@
 <book lang="en" id="userman" xreflabel="bzip2 Manual">
 
  <bookinfo>
-  <title>bzip2 and libbzip2, version 1.0.6</title>
+  <title>bzip2 and libbzip2, version &bz-version;</title>
   <subtitle>A program and library for data compression</subtitle>
   <copyright>
    <year>&bz-lifespan;</year>
@@ -139,7 +139,7 @@ else.</para>
 
  <listitem><para><computeroutput>bzip2</computeroutput>,
   <computeroutput>bunzip2</computeroutput> - a block-sorting file
-  compressor, v1.0.6</para></listitem>
+  compressor, v&bz-version;</para></listitem>
 
  <listitem><para><computeroutput>bzcat</computeroutput> -
    decompresses files to stdout</para></listitem>
