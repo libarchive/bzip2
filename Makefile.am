@@ -120,6 +120,8 @@ EXTRA_DIST = \
 	manual.pdf \
 	manual.ps \
 	manual.xml \
+	meson.build \
+	meson_options.txt \
 	mk251.c \
 	sample1.bz2 \
 	sample1.ref \
