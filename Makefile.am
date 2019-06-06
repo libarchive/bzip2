@@ -87,46 +87,52 @@ check-local: bzip2
 	cmp $(top_builddir)/tests/sample3.tst $(top_srcdir)/tests/sample3.ref
 	@cat $(top_srcdir)/tests/words3
 
-manual: $(srcdir)/manual.html $(srcdir)/manual.ps $(srcdir)/manual.pdf
+manual: $(top_builddir)/docs/manual.html $(top_builddir)/docs/manual.ps $(top_builddir)/docs/manual.pdf
 
-manual.ps: $(MANUAL_SRCS)
-	cd $(srcdir); ./xmlproc.sh -ps manual.xml
+docs/manual.ps: $(MANUAL_SRCS)
+	cd $(top_srcdir)/docs; ./xmlproc.sh -ps manual.xml
 
-manual.pdf: $(MANUAL_SRCS)
-	cd $(srcdir); ./xmlproc.sh -pdf manual.xml
+docs/manual.pdf: $(MANUAL_SRCS)
+	cd $(top_srcdir)/docs; ./xmlproc.sh -pdf manual.xml
 
-manual.html: $(MANUAL_SRCS)
-	cd $(srcdir); ./xmlproc.sh -html manual.xml
+docs/manual.html: $(MANUAL_SRCS)
+	cd $(top_srcdir)/docs; ./xmlproc.sh -html manual.xml
 
 EXTRA_DIST = \
 	$(bin_SCRIPTS) \
 	$(man_MANS) \
 	README.XML.STUFF \
 	README.autotools \
-	bz-common.xsl \
-	bz-fo.xsl \
-	bz-html.xsl \
-	bzip.css \
 	bzip2.pc.in \
 	bzip2.txt \
 	dlltest.c \
 	dlltest.dsp \
-	entities.xml \
-	format.pl \
+	docs/bz-common.xsl \
+	docs/bz-common.xsl \
+	docs/bz-fo.xsl \
+	docs/bz-fo.xsl \
+	docs/bz-html.xsl \
+	docs/bz-html.xsl \
+	docs/bzip.css \
+	docs/bzip.css \
+	docs/entities.xml \
+	docs/format.pl \
+	docs/manual.html \
+	docs/manual.pdf \
+	docs/manual.ps \
+	docs/manual.xml \
+	docs/meson.build \
+	docs/xmlproc.sh \
 	libbz2.def \
 	libbz2.dsp \
 	makefile.msc \
 	man/bzip2.1.preformatted \
-	manual.html \
-	manual.pdf \
-	manual.ps \
-	manual.xml \
 	man/meson.build \
 	meson.build \
 	meson_options.txt \
 	mk251.c \
 	spewG.c \
-	tests/meson.build
+	tests/meson.build \
 	tests/sample1.bz2 \
 	tests/sample1.ref \
 	tests/sample2.bz2 \
@@ -137,5 +143,4 @@ EXTRA_DIST = \
 	tests/words1 \
 	tests/words2 \
 	tests/words3 \
-	unzcrash.c \
-	xmlproc.sh
+	unzcrash.c
