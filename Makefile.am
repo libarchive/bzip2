@@ -27,7 +27,7 @@ bzip2recover_LDADD = libbz2.la
 
 bin_SCRIPTS = bzgrep bzmore bzdiff
 
-man_MANS = bzip2.1 bzgrep.1 bzmore.1 bzdiff.1
+man_MANS = man/bzip2.1 man/bzgrep.1 man/bzmore.1 man/bzdiff.1
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = bzip2.pc
@@ -107,7 +107,6 @@ EXTRA_DIST = \
 	bz-fo.xsl \
 	bz-html.xsl \
 	bzip.css \
-	bzip2.1.preformatted \
 	bzip2.pc.in \
 	bzip2.txt \
 	dlltest.c \
@@ -117,10 +116,12 @@ EXTRA_DIST = \
 	libbz2.def \
 	libbz2.dsp \
 	makefile.msc \
+	man/bzip2.1.preformatted \
 	manual.html \
 	manual.pdf \
 	manual.ps \
 	manual.xml \
+	man/meson.build \
 	meson.build \
 	meson_options.txt \
 	mk251.c \
