@@ -3,8 +3,8 @@
 variables:
   AMD64_DEBIAN_TESTING: debian:testing
   AMD64_UBUNTU_BIONIC: ubuntu:bionic
-  AMD64_FEDORA_LATEST: fedora:latest
-  AMD64_FEDORA_RAWHIDE: fedora:rawhide
+  AMD64_FEDORA_LATEST: 'registry.fedoraproject.org/fedora:30'
+  AMD64_FEDORA_RAWHIDE: 'registry.fedoraproject.org/fedora:rawhide'
   AMD64_OPENSUSE_LEAP: opensuse/leap
   AMD64_OPENSUSE_TUMBLEWEED: opensuse/tumbleweed
 
