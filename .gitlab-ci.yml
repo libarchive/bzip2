@@ -11,7 +11,8 @@ variables:
 stages:
   - test
 
-.test_bzip2_template: &bzip2_test
+.test:
+  stage: test
   script:
     - mkdir builddir && cd builddir
     - ../autogen.sh
@@ -26,46 +27,40 @@ stages:
       - 'config.log'
   
 debian:testing:
+  extends: '.test'
   image: $AMD64_DEBIAN_TESTING
-  stage: test
   before_script:
     - apt update -y
     - apt install -y gcc make automake libtool
-  <<: *bzip2_test
 
 ubuntu:bionic:
+  extends: '.test'
   image: $AMD64_UBUNTU_BIONIC
-  stage: test
   before_script:
     - apt update -y
     - apt install -y gcc make automake libtool
-  <<: *bzip2_test
 
 fedora:latest:
+  extends: '.test'
   image: $AMD64_FEDORA_LATEST
-  stage: test
   before_script:
     - dnf install -y gcc make automake libtool
-  <<: *bzip2_test
 
 fedora:rawhide:
+  extends: '.test'
   image: $AMD64_FEDORA_RAWHIDE
-  stage: test
   before_script:
     - dnf install -y gcc make automake libtool
   allow_failure: true
-  <<: *bzip2_test
 
 opensuse/leap:
+  extends: '.test'
   image: $AMD64_OPENSUSE_LEAP
-  stage: test
   before_script:
     - zypper install -y gcc make automake libtool
-  <<: *bzip2_test
 
 opensuse/tumbleweed:
+  extends: '.test'
   image: $AMD64_OPENSUSE_TUMBLEWEED
-  stage: test
   before_script:
     - zypper install -y gcc make automake libtool
-  <<: *bzip2_test
