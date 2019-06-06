@@ -24,8 +24,20 @@ stages:
     paths:
       - 'config.status'
       - 'config.log'
+
+.meson_bzip2_template_meson: &bzip2_meson
+  script:
+    - meson builddir
+    - ninja -C builddir
+    - ninja -C builddir test
+  after_script:
+    - cp builddir/meson-logs/meson-log.txt .
+    - rm -rf builddir
+  artifacts:
+    paths:
+      - 'meson-log.txt'
   
-debian:testing:
+debian:testing:autotools:
   image: $AMD64_DEBIAN_TESTING
   stage: test
   before_script:
@@ -33,7 +45,15 @@ debian:testing:
     - apt install -y gcc make automake libtool
   <<: *bzip2_test
 
-ubuntu:bionic:
+debian:testing:meson:
+  image: $AMD64_DEBIAN_TESTING
+  stage: test
+  before_script:
+    - apt update -y
+    - apt install -y gcc meson
+  <<: *bzip2_meson
+
+ubuntu:bionic:autotools:
   image: $AMD64_UBUNTU_BIONIC
   stage: test
   before_script:
@@ -41,14 +61,30 @@ ubuntu:bionic:
     - apt install -y gcc make automake libtool
   <<: *bzip2_test
 
-fedora:latest:
+ubuntu:bionic:meson:
+  image: $AMD64_UBUNTU_BIONIC
+  stage: test
+  before_script:
+    - apt update -y
+    - apt install -y gcc python3-pip ninja-build
+    - pip3 install meson
+  <<: *bzip2_meson
+
+fedora:latest:autotools:
   image: $AMD64_FEDORA_LATEST
   stage: test
   before_script:
     - dnf install -y gcc make automake libtool
   <<: *bzip2_test
 
-fedora:rawhide:
+fedora:latest:meson:
+  image: $AMD64_FEDORA_LATEST
+  stage: test
+  before_script:
+    - dnf install -y gcc meson
+  <<: *bzip2_meson
+
+fedora:rawhide:autotools:
   image: $AMD64_FEDORA_RAWHIDE
   stage: test
   before_script:
@@ -56,16 +92,39 @@ fedora:rawhide:
   allow_failure: true
   <<: *bzip2_test
 
-opensuse/leap:
+fedora:rawhide:meson:
+  image: $AMD64_FEDORA_RAWHIDE
+  stage: test
+  before_script:
+    - dnf install -y gcc meson
+  allow_failure: true
+  <<: *bzip2_meson
+
+opensuse/leap:autotools:
   image: $AMD64_OPENSUSE_LEAP
   stage: test
   before_script:
     - zypper install -y gcc make automake libtool
   <<: *bzip2_test
 
-opensuse/tumbleweed:
+opensuse/leap:meson:
+  image: $AMD64_OPENSUSE_LEAP
+  stage: test
+  before_script:
+    - zypper install -y gcc ninja python3-pip
+    - pip3 install meson
+  <<: *bzip2_meson
+
+opensuse/tumbleweed:autotools:
   image: $AMD64_OPENSUSE_TUMBLEWEED
   stage: test
   before_script:
     - zypper install -y gcc make automake libtool
   <<: *bzip2_test
+
+opensuse/tumbleweed:meson:
+  image: $AMD64_OPENSUSE_TUMBLEWEED
+  stage: test
+  before_script:
+    - zypper install -y gcc meson
+  <<: *bzip2_meson
