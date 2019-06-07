@@ -8,6 +8,8 @@ variables:
   AMD64_OPENSUSE_LEAP: opensuse/leap
   AMD64_OPENSUSE_TUMBLEWEED: opensuse/tumbleweed
 
+  I386_UBUNTU_BIONIC: 'ubuntu:bionic'
+
 stages:
   - test
 
@@ -56,6 +58,14 @@ ubuntu:bionic:autotools:
 ubuntu:bionic:meson:
   extends: '.meson_test'
   image: $AMD64_UBUNTU_BIONIC
+  before_script:
+    - apt update -y
+    - apt install -y gcc python3-pip ninja-build
+    - pip3 install meson
+
+ubuntu:bionic:i386:
+  extends: '.meson_test'
+  image: $I386_UBUNTU_BIONIC
   before_script:
     - apt update -y
     - apt install -y gcc python3-pip ninja-build
