@@ -38,13 +38,14 @@ interface here:
 https://gitlab.com/federicomenaquintero/bzip2
 
 Maintenance happens in the `master` branch.  There is an effort to port
-Bzip2 gradually to Rust in a `rustify` branch.
+Bzip2 gradually to [Rust] in a `rustify` branch.
 
 To report bugs, or to view existing reports, please do so in [Bzip2's
 repository][gitlab] as well.
 
 [coc]: code-of-conduct.md
 [gitlab]: https://gitlab.com/federicomenaquintero/bzip2/issues
+[Rust]: https://www.rust-lang.org
 
 
 ## Compiling Bzip2 and libbz2
@@ -79,7 +80,7 @@ make check
 make install
 ```
 
-See the [`INSTALL`](#INSTALL) file for details on options you can pass
+See the [`INSTALL`](INSTALL) file for details on options you can pass
 to the `configure` script to select where to install the compiled
 library.
 
