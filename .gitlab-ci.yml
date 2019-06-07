@@ -8,7 +8,7 @@ variables:
   AMD64_OPENSUSE_LEAP: opensuse/leap
   AMD64_OPENSUSE_TUMBLEWEED: opensuse/tumbleweed
 
-  I386_UBUNTU_BIONIC: 'ubuntu:bionic'
+  I386_UBUNTU_BIONIC: 'i386/ubuntu:bionic'
 
 stages:
   - test
@@ -33,7 +33,7 @@ stages:
   script:
     - meson builddir
     - ninja -C builddir
-    - ninja -C builddir test
+    - meson test -C builddir --print-errorlogs
   after_script:
     - cp builddir/meson-logs/meson-log.txt .
     - rm -rf builddir
