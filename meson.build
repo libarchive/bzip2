@@ -24,14 +24,27 @@ if cc.has_function_attribute('visibility')
   c_args += '-DBZ_EXTERN=__attribute__((__visibility__("default")))'
 endif
 
-libbzip2 = library(
-  'bz2',
-  ['blocksort.c', 'huffman.c', 'crctable.c', 'randtable.c', 'compress.c', 'decompress.c', 'bzlib.c'],
-  c_args : c_args,
-  gnu_symbol_visibility : 'hidden',
-  version : meson.project_version(),
-  install : true,
-)
+bz_sources = ['blocksort.c', 'huffman.c', 'crctable.c', 'randtable.c', 'compress.c', 'decompress.c', 'bzlib.c']
+
+if ['msvc', 'clang-cl', 'intel-cl'].contains(cc.get_id())
+  libbzip2 = library(
+    'bz2',
+    bz_sources,
+    c_args : c_args,
+    vs_module_defs : 'libbz2.def',
+    version : meson.project_version(),
+    install : true,
+  )
+else
+  libbzip2 = library(
+    'bz2',
+    bz_sources,
+    c_args : c_args,
+    gnu_symbol_visibility : 'hidden',
+    version : meson.project_version(),
+    install : true,
+  )
+endif
 
 bzip2 = executable(
   'bzip2',
