@@ -1,5 +1,5 @@
-LIBRARY			LIBBZ2
-DESCRIPTION		"libbzip2: library for data compression"
+LIBRARY			bz2-1
+DESCRIPTION		"bz2: library for data compression"
 EXPORTS
 	BZ2_bzCompressInit
 	BZ2_bzCompress
