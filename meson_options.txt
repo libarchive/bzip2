@@ -1,0 +1,5 @@
+option(
+  'docs',
+  type : 'feature',
+  description : 'generate documentation in html, pdf, and ps format',
+)

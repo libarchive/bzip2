@@ -39,7 +39,7 @@
 #define BZ_LCCWIN32 1
 #undef  BZ_UNIX
 #define BZ_UNIX 0
-#endif
+#endif 
 
 
 /*---------------------------------------------*/
@@ -128,7 +128,7 @@
 #if BZ_LCCWIN32
 #   include <io.h>
 #   include <fcntl.h>
-#   include <sys\stat.h>
+#   include <sys/stat.h>
 
 #   define NORETURN       /**/
 #   define PATH_SEP       '\\'

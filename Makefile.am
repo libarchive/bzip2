@@ -27,7 +27,7 @@ bzip2recover_LDADD = libbz2.la
 
 bin_SCRIPTS = bzgrep bzmore bzdiff
 
-man_MANS = bzip2.1 bzgrep.1 bzmore.1 bzdiff.1
+man_MANS = man/bzip2.1 man/bzgrep.1 man/bzmore.1 man/bzdiff.1
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = bzip2.pc
@@ -71,66 +71,76 @@ uninstall-hook:
 	rm -f $(DESTDIR)$(mandir)/man1/`echo "bzcmp" | sed 's,^.*/,,;$(transform)'`.1
 
 check-local: bzip2
-	@cat $(srcdir)/words1
-	./bzip2 -1  <$(srcdir)/sample1.ref >sample1.rb2
-	./bzip2 -2  <$(srcdir)/sample2.ref >sample2.rb2
-	./bzip2 -3  <$(srcdir)/sample3.ref >sample3.rb2
-	./bzip2 -d  <$(srcdir)/sample1.bz2 >sample1.tst
-	./bzip2 -d  <$(srcdir)/sample2.bz2 >sample2.tst
-	./bzip2 -ds <$(srcdir)/sample3.bz2 >sample3.tst
-	cmp $(srcdir)/sample1.bz2 sample1.rb2
-	cmp $(srcdir)/sample2.bz2 sample2.rb2
-	cmp $(srcdir)/sample3.bz2 sample3.rb2
-	cmp sample1.tst $(srcdir)/sample1.ref
-	cmp sample2.tst $(srcdir)/sample2.ref
-	cmp sample3.tst $(srcdir)/sample3.ref
-	@cat $(srcdir)/words3
+	@cat $(top_srcdir)/tests/words1
+	@mkdir $(top_builddir)/tests/
+	./bzip2 -1  <$(top_srcdir)/tests/sample1.ref >$(top_builddir)/tests/sample1.rb2
+	./bzip2 -2  <$(top_srcdir)/tests/sample2.ref >$(top_builddir)/tests/sample2.rb2
+	./bzip2 -3  <$(top_srcdir)/tests/sample3.ref >$(top_builddir)/tests/sample3.rb2
+	./bzip2 -d  <$(top_srcdir)/tests/sample1.bz2 >$(top_builddir)/tests/sample1.tst
+	./bzip2 -d  <$(top_srcdir)/tests/sample2.bz2 >$(top_builddir)/tests/sample2.tst
+	./bzip2 -ds <$(top_srcdir)/tests/sample3.bz2 >$(top_builddir)/tests/sample3.tst
+	cmp $(top_srcdir)/tests/sample1.bz2 $(top_builddir)/tests/sample1.rb2
+	cmp $(top_srcdir)/tests/sample2.bz2 $(top_builddir)/tests/sample2.rb2
+	cmp $(top_srcdir)/tests/sample3.bz2 $(top_builddir)/tests/sample3.rb2
+	cmp $(top_builddir)/tests/sample1.tst $(top_srcdir)/tests/sample1.ref
+	cmp $(top_builddir)/tests/sample2.tst $(top_srcdir)/tests/sample2.ref
+	cmp $(top_builddir)/tests/sample3.tst $(top_srcdir)/tests/sample3.ref
+	@cat $(top_srcdir)/tests/words3
 
-manual: $(srcdir)/manual.html $(srcdir)/manual.ps $(srcdir)/manual.pdf
+manual: $(top_builddir)/docs/manual.html $(top_builddir)/docs/manual.ps $(top_builddir)/docs/manual.pdf
 
-manual.ps: $(MANUAL_SRCS)
-	cd $(srcdir); ./xmlproc.sh -ps manual.xml
+docs/manual.ps: $(MANUAL_SRCS)
+	cd $(top_srcdir)/docs; ./xmlproc.sh -ps manual.xml
 
-manual.pdf: $(MANUAL_SRCS)
-	cd $(srcdir); ./xmlproc.sh -pdf manual.xml
+docs/manual.pdf: $(MANUAL_SRCS)
+	cd $(top_srcdir)/docs; ./xmlproc.sh -pdf manual.xml
 
-manual.html: $(MANUAL_SRCS)
-	cd $(srcdir); ./xmlproc.sh -html manual.xml
+docs/manual.html: $(MANUAL_SRCS)
+	cd $(top_srcdir)/docs; ./xmlproc.sh -html manual.xml
 
 EXTRA_DIST = \
 	$(bin_SCRIPTS) \
 	$(man_MANS) \
-	README.autotools \
 	README.XML.STUFF \
-	bz-common.xsl \
-	bz-fo.xsl \
-	bz-html.xsl \
-	bzip.css \
-	bzip2.1.preformatted \
+	README.autotools \
 	bzip2.pc.in \
 	bzip2.txt \
 	dlltest.c \
 	dlltest.dsp \
-	entities.xml \
-	format.pl \
+	docs/bz-common.xsl \
+	docs/bz-common.xsl \
+	docs/bz-fo.xsl \
+	docs/bz-fo.xsl \
+	docs/bz-html.xsl \
+	docs/bz-html.xsl \
+	docs/bzip.css \
+	docs/bzip.css \
+	docs/entities.xml \
+	docs/format.pl \
+	docs/manual.html \
+	docs/manual.pdf \
+	docs/manual.ps \
+	docs/manual.xml \
+	docs/meson.build \
+	docs/xmlproc.sh \
 	libbz2.def \
 	libbz2.dsp \
 	makefile.msc \
-	manual.html \
-	manual.pdf \
-	manual.ps \
-	manual.xml \
+	man/bzip2.1.preformatted \
+	man/meson.build \
+	meson.build \
+	meson_options.txt \
 	mk251.c \
-	sample1.bz2 \
-	sample1.ref \
-	sample2.bz2 \
-	sample2.ref \
-	sample3.bz2 \
-	sample3.ref \
 	spewG.c \
-	unzcrash.c \
-	words0 \
-	words1 \
-	words2 \
-	words3 \
-	xmlproc.sh
+	tests/meson.build \
+	tests/sample1.bz2 \
+	tests/sample1.ref \
+	tests/sample2.bz2 \
+	tests/sample2.ref \
+	tests/sample3.bz2 \
+	tests/sample3.ref \
+	tests/words0 \
+	tests/words1 \
+	tests/words2 \
+	tests/words3 \
+	unzcrash.c
