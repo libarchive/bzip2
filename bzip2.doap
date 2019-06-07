@@ -1,0 +1,28 @@
+<Project xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns="http://usefulinc.com/ns/doap#">
+
+  <name xml:lang="en">Bzip2</name>
+  <shortdesc xml:lang="en">Program and library for lossless, block-sorting data compression</shortdesc>
+
+  <description>
+    Bzip2/libbz2 is a program and library for lossless, block-sorting
+    data compression.  It is used widely to compress file archives and
+    as a component of compressed data streams.
+  </description>
+
+  <homepage rdf:resource="https://sourceware.org/bzip2/" />
+  <download-page rdf:resource="https://sourceware.org/bzip2/downloads.html/" />
+  <bug-database rdf:resource="https://gitlab.com/federicomenaquintero/bzip2/issues" />
+  <programming-language>C</programming-language>
+  <programming-language>Rust</programming-language>
+
+  <maintainer>
+    <foaf:Person>
+      <foaf:name>Federico Mena Quintero</foaf:name>
+      <foaf:mbox rdf:resource="mailto:federico@gnome.org" />
+    </foaf:Person>
+  </maintainer>
+
+</Project>
