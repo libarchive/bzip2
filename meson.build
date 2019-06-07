@@ -25,7 +25,7 @@ if cc.has_function_attribute('visibility')
 endif
 
 libbzip2 = library(
-  'bzip2',
+  'bz2',
   ['blocksort.c', 'huffman.c', 'crctable.c', 'randtable.c', 'compress.c', 'decompress.c', 'bzlib.c'],
   c_args : c_args,
   gnu_symbol_visibility : 'hidden',
