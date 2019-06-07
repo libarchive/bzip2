@@ -5,6 +5,7 @@ This Bzip2/libbz2, a program and library for lossless, block-sorting
 data compression.
 
 Copyright (C) 1996-2010 Julian Seward <jseward@acm.org>
+
 Copyright (C) 2019 Federico Mena Quintero <federico@gnome.org>
 
 Please read the [WARNING], [DISCLAIMER] and [PATENTS] sections in this
@@ -13,9 +14,9 @@ file for important information.
 This program is released under the terms of the license contained
 in the file [COPYING].
 
-[WARNING]: #WARNING
-[DISCLAIMER]: #DISCLAIMER
-[PATENTS]: #PATENTS
+[WARNING]: #warning
+[DISCLAIMER]: #disclaimer
+[PATENTS]: #patents
 [COPYING]: COPYING
 
 ------------------------------------------------------------------
@@ -42,6 +43,7 @@ Bzip2 gradually to Rust in a `rustify` branch.
 To report bugs, or to view existing reports, please do so in [Bzip2's
 repository][gitlab] as well.
 
+[coc]: code-of-conduct.md
 [gitlab]: https://gitlab.com/federicomenaquintero/bzip2/issues
 
 
@@ -77,7 +79,7 @@ make check
 make install
 ```
 
-See the [`INSTALL`][install] file for details on options you can pass
+See the [`INSTALL`](#INSTALL) file for details on options you can pass
 to the `configure` script to select where to install the compiled
 library.
 
@@ -93,13 +95,14 @@ make install
 ### Build instructions for Windows
 
 At least using MS Visual C++ 6, you can build from the unmodified
-sources by issuing, in a command shell: 
+sources with [makefile.msc](makefile.msc) by issuing, in a command
+shell:
 
 ```
 nmake -f makefile.msc
 ```
 
-(you may need to first run the MSVC-provided script VCVARS32.BAT
+(you may need to first run the MSVC-provided script `VCVARS32.BAT`
 so as to set up paths to the MSVC tools correctly).
 
 ## WARNING
