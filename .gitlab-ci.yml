@@ -80,6 +80,16 @@ fedora:latest:meson:
   before_script:
     - dnf install -y gcc meson
 
+fedora_mingw:latest:autotools:
+  image: $AMD64_FEDORA_LATEST
+  before_script:
+    - dnf install -y mingw64-gcc make automake libtool
+  script:
+    - mkdir builddir && cd builddir
+    - NOCONFIGURE=1 ../autogen.sh
+    - mingw64-configure
+    - make
+
 fedora:rawhide:autotools:
   extends: '.autotools_test'
   image: $AMD64_FEDORA_RAWHIDE
