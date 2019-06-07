@@ -39,14 +39,7 @@ stages:
     paths:
       - 'meson-log.txt'
   
-debian:testing:autotools:
-  extends: '.autotools_test'
-  image: $AMD64_DEBIAN_TESTING
-  before_script:
-    - apt update -y
-    - apt install -y gcc make automake libtool
-
-debian:testing:meson:
+debian:testing:
   extends: '.meson_test'
   image: $AMD64_DEBIAN_TESTING
   before_script:
@@ -68,13 +61,7 @@ ubuntu:bionic:meson:
     - apt install -y gcc python3-pip ninja-build
     - pip3 install meson
 
-fedora:latest:autotools:
-  extends: '.autotools_test'
-  image: $AMD64_FEDORA_LATEST
-  before_script:
-    - dnf install -y gcc make automake libtool
-
-fedora:latest:meson:
+fedora:30:
   extends: '.meson_test'
   image: $AMD64_FEDORA_LATEST
   before_script:
@@ -90,40 +77,21 @@ fedora_mingw:latest:autotools:
     - mingw64-configure
     - make
 
-fedora:rawhide:autotools:
-  extends: '.autotools_test'
-  image: $AMD64_FEDORA_RAWHIDE
-  before_script:
-    - dnf install -y gcc make automake libtool
-  allow_failure: true
-
-fedora:rawhide:meson:
+fedora:rawhide:
   extends: '.meson_test'
   image: $AMD64_FEDORA_RAWHIDE
   before_script:
     - dnf install -y gcc meson
   allow_failure: true
 
-opensuse/leap:autotools:
-  extends: '.autotools_test'
-  image: $AMD64_OPENSUSE_LEAP
-  before_script:
-    - zypper install -y gcc make automake libtool
-
-opensuse/leap:meson:
+opensuse/leap:
   extends: '.meson_test'
   image: $AMD64_OPENSUSE_LEAP
   before_script:
     - zypper install -y gcc ninja python3-pip
     - pip3 install meson
 
-opensuse/tumbleweed:autotools:
-  extends: '.autotools_test'
-  image: $AMD64_OPENSUSE_TUMBLEWEED
-  before_script:
-    - zypper install -y gcc make automake libtool
-
-opensuse/tumbleweed:meson:
+opensuse/tumbleweed:
   extends: '.meson_test'
   image: $AMD64_OPENSUSE_TUMBLEWEED
   before_script:
