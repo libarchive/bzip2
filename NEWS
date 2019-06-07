@@ -15,7 +15,16 @@
 
 0.9.0
 ~~~~~
-First version.
+First version after 0.1pl2.
+
+   * Approx 10% faster compression, 30% faster decompression
+   * -t (test mode) is a lot quicker
+   * Can decompress concatenated compressed files
+   * Programming interface, so programs can directly read/write .bz2 files
+   * Less restrictive (BSD-style) licensing
+   * Flag handling more compatible with GNU gzip
+   * Much more documentation, i.e., a proper user manual
+   * Hopefully, improved portability (at least of the library)
 
 
 0.9.0a
@@ -92,6 +101,14 @@ Programming-level changes are:
    added minor mods so it compiles with DJGPP out of the box
    fixed Makefile so it doesn't give problems with BSD make
    fix uninitialised memory reads in dlltest.c
+
+Summary:
+
+   * Compression speed is much less sensitive to the input
+     data than in previous versions.  Specifically, the very
+     slow performance caused by repetitive data is fixed.
+   * Many small improvements in file and flag handling.
+   * A Y2K statement.
 
 0.9.5b
 ~~~~~~
