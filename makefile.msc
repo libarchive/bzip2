@@ -14,14 +14,17 @@ OBJS= blocksort.obj  \
       decompress.obj \
       bzlib.obj
 
-all: lib bzip2 test
+all: dll lib bzip2 test
 
-bzip2: lib
-	$(CC) $(CFLAGS) /Febzip2 bzip2.c libbz2.lib setargv.obj
+bzip2: dll
+	$(CC) $(CFLAGS) /Febzip2 bzip2.c bz2-1.lib setargv.obj
 	$(CC) $(CFLAGS) /Febzip2recover bzip2recover.c
 
+dll: $(OBJS) libbz2.def
+	link /dll /implib:bz2-1.lib /out:bz2-1.dll /def:libbz2.def $(OBJS)
+
 lib: $(OBJS)
-	lib /out:libbz2.lib $(OBJS)
+	lib /out:bz2-static.lib $(OBJS)
 
 test: bzip2
 	type tests\words1
@@ -48,7 +51,10 @@ test: bzip2
 
 clean: 
 	del *.obj
-	del libbz2.lib 
+	del bz2-1.dll
+	del bz2-1.exp
+	del bz2-1.lib
+	del bz2-static.lib
 	del bzip2.exe
 	del bzip2recover.exe
 	del tests\sample1.rb2 

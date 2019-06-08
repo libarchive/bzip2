@@ -51,6 +51,8 @@ builddir
 .vscode
 
 # Windows build outputs
+*.dll
 *.exe
+*.exp
 *.lib
 *.obj
