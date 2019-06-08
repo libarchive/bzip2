@@ -49,3 +49,8 @@ builddir
 
 # vscode config directory
 .vscode
+
+# Windows build outputs
+*.exe
+*.lib
+*.obj
