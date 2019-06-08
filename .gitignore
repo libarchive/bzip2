@@ -56,3 +56,4 @@ builddir
 *.exp
 *.lib
 *.obj
+*.res

@@ -5,6 +5,7 @@
 
 CC=cl
 CFLAGS= -DWIN32 -MD -Ox -D_FILE_OFFSET_BITS=64 -nologo
+RC=rc
 
 OBJS= blocksort.obj  \
       huffman.obj    \
@@ -16,15 +17,24 @@ OBJS= blocksort.obj  \
 
 all: dll lib bzip2 test
 
-bzip2: dll
-	$(CC) $(CFLAGS) /Febzip2 bzip2.c bz2-1.lib setargv.obj
-	$(CC) $(CFLAGS) /Febzip2recover bzip2recover.c
+bzip2: dll bzip2.res bzip2recover.res
+	$(CC) $(CFLAGS) /Febzip2 bzip2.c bz2-1.lib setargv.obj bzip2.res
+	$(CC) $(CFLAGS) /Febzip2recover bzip2recover.c bzip2recover.res
 
-dll: $(OBJS) libbz2.def
-	link /dll /implib:bz2-1.lib /out:bz2-1.dll /def:libbz2.def $(OBJS)
+dll: $(OBJS) libbz2.def bz2-1.res
+	link /dll /implib:bz2-1.lib /out:bz2-1.dll /def:libbz2.def $(OBJS) bz2-1.res
 
 lib: $(OBJS)
 	lib /out:bz2-static.lib $(OBJS)
+
+bzip2.res:
+	$(RC) /fobzip2.res /d BZIP2 version.rc
+
+bzip2recover.res:
+	$(RC) /fobzip2recover.res /d BZIP2RECOVER version.rc
+
+bz2-1.res:
+	$(RC) /fobz2-1.res /d BZ21DLL version.rc
 
 test: bzip2
 	type tests\words1
@@ -54,9 +64,12 @@ clean:
 	del bz2-1.dll
 	del bz2-1.exp
 	del bz2-1.lib
+	del bz2-1.res
 	del bz2-static.lib
 	del bzip2.exe
+	del bzip2.res
 	del bzip2recover.exe
+	del bzip2recover.res
 	del tests\sample1.rb2 
 	del tests\sample2.rb2 
 	del tests\sample3.rb2
