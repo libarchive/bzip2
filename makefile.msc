@@ -1,4 +1,4 @@
-# Makefile for Microsoft Visual C++ 6.0
+# Makefile for Microsoft Visual Studio 2013 and later.
 # usage: nmake -f makefile.msc
 # K.M. Syring (syring@gsf.de)
 # Fixed up by JRS for bzip2-0.9.5d release.

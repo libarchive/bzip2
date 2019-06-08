@@ -189,13 +189,13 @@ make install
 
 ## Using nmake on Windows
 
-At least using MS Visual C++ 6, you can build from the unmodified
-sources with [makefile.msc](makefile.msc) by issuing, in a command
-shell:
+Bzip2 can be built with Microsoft Visual Studio 2013 or later. From a Visual
+Studio Tools Command Prompt run:
 
 ```
 nmake -f makefile.msc
 ```
 
-(you may need to first run the MSVC-provided script `VCVARS32.BAT`
-so as to set up paths to the MSVC tools correctly).
+The build will produce `bzip2.exe` and `bzip2recover.exe` files that are dependent
+on `bz2-1.dll` and the Microsoft C Runtime library. Dynamic import and static
+libraries are also built: `bz2-1.lib` and `bz2-static.lib`.
