@@ -62,11 +62,60 @@ The [Meson] build system is the preferred way of building Bzip2.  You
 can use these commands to build Bzip2 in a certain `builddir`
 directory.
 
-```
+```sh
 meson --prefix /usr builddir
 ninja -C builddir
 meson test -C builddir --print-errorlogs
 ninja -C builddir install
+```
+
+### Build instructions for Unix & Windows (CMake)
+
+Bzip2 can be compiled with the [CMake] build system.
+You can use these commands to build Bzip2 in a certain `build` directory.
+
+#### Basic Release build
+
+```sh
+mkdir build && cd build
+cmake ..
+cmake --build . --config Release
+```
+
+#### Basic Debug build
+
+```sh
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE="Debug"
+cmake --build . --config Debug
+```
+
+#### Build and install to a specific install location (prefix)
+
+```sh
+mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install ..
+cmake --build . --target install --config Release
+```
+
+#### Build with example application (dlltest)
+
+```sh
+mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install .. -DENABLE_EXAMPLES=ON
+cmake --build . --target install --config Release
+```
+
+#### Build and run tests
+
+- `-V`: Verbose
+- `-C`: Required for Windows builds
+
+```sh
+mkdir build && cd build
+cmake ..
+cmake --build . --config Release
+ctest -C Release -V
 ```
 
 ### Build instructions for Unix (Autotools)
@@ -134,7 +183,7 @@ PROGRAM UNLESS YOU ARE PREPARED TO ACCEPT THE POSSIBILITY, HOWEVER
 SMALL, THAT THE DATA WILL NOT BE RECOVERABLE.
 
 That is not to say this program is inherently unreliable.
-Indeed, I very much hope the opposite is true.  Bzip2/libbz2 
+Indeed, I very much hope the opposite is true.  Bzip2/libbz2
 has been carefully constructed and extensively tested.
 
 ## PATENTS
