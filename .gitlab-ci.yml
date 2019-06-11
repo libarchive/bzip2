@@ -74,17 +74,8 @@ ubuntu:bionic:cmake:
   image: $AMD64_UBUNTU_BIONIC
   before_script:
     - apt update -y
-    - apt install -y gcc make python3-pip xmltex xsltproc
-    - version=3.14
-    - build=5
-    - mkdir ~/temp
-    - cd ~/temp
-    - wget https://cmake.org/files/v$version/cmake-$version.$build.tar.gz
-    - tar -xzvf cmake-$version.$build.tar.gz
-    - cd cmake-$version.$build/
-    - ./bootstrap --prefix=/usr
-    - make -j4
-    - make install
+    - apt install -y gcc make python3-pip
+    - pip3 install cmake
 
 ubuntu:bionic:meson:
   extends: '.meson_test'
