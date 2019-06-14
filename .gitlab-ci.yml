@@ -40,7 +40,21 @@ stages:
   artifacts:
     paths:
       - 'meson-log.txt'
-  
+
+.cmake_test:
+  stage: test
+  script:
+    - mkdir builddir && cd builddir
+    - cmake ..
+    - cmake --build . --config Release
+    - make check
+  after_script:
+    - cp builddir/CMakeFiles/CMakeOutput.log .
+    - rm -rf builddir
+  artifacts:
+    paths:
+      - 'CMakeOutput.log'
+
 debian:testing:
   extends: '.meson_test'
   image: $AMD64_DEBIAN_TESTING
@@ -54,6 +68,14 @@ ubuntu:bionic:autotools:
   before_script:
     - apt update -y
     - apt install -y gcc make automake libtool
+
+ubuntu:bionic:cmake:
+  extends: '.cmake_test'
+  image: $AMD64_UBUNTU_BIONIC
+  before_script:
+    - apt update -y
+    - apt install -y gcc make python3-pip
+    - pip3 install cmake
 
 ubuntu:bionic:meson:
   extends: '.meson_test'
