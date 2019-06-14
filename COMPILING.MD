@@ -1,12 +1,20 @@
 # Compiling bzip2
 
-There are three build systems currently for building bzip2: meson, autotools,
-and nmake
+The following build systems are available for Bzip2:
+
+* [Meson]: This is our preferred build system for Unix-like systems.
+* GNU [Autotools]: Another traditional build system for Unix-like
+  systems.
+* nmake: Unsupported; used only for Windows.
 
 Autotools is only supported on Unix-like OSes, nmake is only for Windows,
 meson works for both.
 
-## Using meson
+[Meson]: https://mesonbuild.com
+[Autotools]: https://autotools.io/index.html
+
+
+## Using Meson
 
 Meson provides a [large number of built-in options](https://mesonbuild.com/Builtin-options.html) 
 to control compilation. A few important ones are listed below:
@@ -20,15 +28,15 @@ to control compilation. A few important ones are listed below:
 
 Meson recognizes environment variables like $CFLAGS and $CC, it is recommended
 that you do not use $CFLAGS, and instead use -Dc_args and -DC_link_args, as
-meson will remember these even if you need to reconfigure from scratch (such
-as when you update meson), it will not remember $CFLAGS.
+Meson will remember these even if you need to reconfigure from scratch (such
+as when you update Meson), it will not remember $CFLAGS.
 
 Meson will never change compilers once configured, so $CC is perfectly safe.
 
 ### Unix-like (Linux, *BSD, Cygwin, macOS)
 
 You will need
- - Python 3.5 or newer (for meson)
+ - Python 3.5 or newer (for Meson)
  - meson (Verison 0.48 or newer)
  - ninja
  - pkg-config
@@ -46,11 +54,14 @@ You will need
  pip3 install --user meson
  ```
 
- Once you have installed the dependencies you will use the standard meson
- configuration, ninja build:
+ Once you have installed the dependencies, the following should work
+ to use the standard Meson configuration, a `builddir` for
+ compilation, and a `/usr` prefix for installation:
+ 
  ```sh
- meson builddir/
+ meson --prefix /usr builddir/
  ninja -C builddir
+ meson test -C builddir --print-errorlogs
  [sudo] ninja -C builddir install
  ```
 
@@ -89,6 +100,7 @@ compilers like clang-cl and ICL) work with ninja as well.
 ```cmd
 meson $builddir
 ninja -C $builddir
+meson test -C builddir --print-errorlogs
 ```
 
 or:
@@ -97,3 +109,93 @@ meson $builddir --backend=vs
 cd $builddir
 msbuild bzip2.sln /m
 ```
+
+## Using CMake
+
+### Build instructions for Unix & Windows (CMake)
+
+Bzip2 can be compiled with the [CMake] build system.
+You can use these commands to build Bzip2 in a certain `build` directory.
+
+#### Basic Release build
+
+```sh
+mkdir build && cd build
+cmake ..
+cmake --build . --config Release
+```
+
+#### Basic Debug build
+
+```sh
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE="Debug"
+cmake --build . --config Debug
+```
+
+#### Build and install to a specific install location (prefix)
+
+```sh
+mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install ..
+cmake --build . --target install --config Release
+```
+
+#### Build with example application (dlltest)
+
+```sh
+mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install .. -DENABLE_EXAMPLES=ON
+cmake --build . --target install --config Release
+```
+
+#### Build and run tests
+
+- `-V`: Verbose
+- `-C`: Required for Windows builds
+
+```sh
+mkdir build && cd build
+cmake ..
+cmake --build . --config Release
+ctest -C Release -V
+```
+
+## Using GNU Autotools
+
+### Build instructions for Unix (Autotools)
+
+If you are compiling a tarball:
+
+```sh
+./configure --prefix=/usr
+make
+make check
+make install
+```
+
+See the [`INSTALL`](INSTALL) file for details on options you can pass
+to the `configure` script to select where to install the compiled
+library.
+
+If you are compiling from a git checkout:
+
+```sh
+./autogen.sh --prefix=/usr
+make
+make check
+make install
+```
+
+## Using nmake on Windows
+
+At least using MS Visual C++ 6, you can build from the unmodified
+sources with [makefile.msc](makefile.msc) by issuing, in a command
+shell:
+
+```
+nmake -f makefile.msc
+```
+
+(you may need to first run the MSVC-provided script `VCVARS32.BAT`
+so as to set up paths to the MSVC tools correctly).
