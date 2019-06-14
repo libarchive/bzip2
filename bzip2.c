@@ -132,8 +132,8 @@
 
 #   define NORETURN       /**/
 #   define PATH_SEP       '\\'
-#   define MY_LSTAT       _stat
-#   define MY_STAT        _stat
+#   define MY_LSTAT       _stati64
+#   define MY_STAT        _stati64
 #   define MY_S_ISREG(x)  ((x) & _S_IFREG)
 #   define MY_S_ISDIR(x)  ((x) & _S_IFDIR)
 
