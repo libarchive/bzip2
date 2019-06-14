@@ -50,10 +50,10 @@ repository][gitlab] as well.
 
 ## Compiling Bzip2 and libbz2
 
-Please see the [COMPILING.MD] file for details.  This includes
+Please see the [`COMPILING.md`][COMPILING.md] file for details.  This includes
 instructions for buliding using Meson, CMake, GNU Autotools, or nmake.
 
-[COMPILING.MD]: COMPILING.MD
+[COMPILING.md]: COMPILING.md
 
 ## WARNING
 
