@@ -3,14 +3,17 @@
 The following build systems are available for Bzip2:
 
 * [Meson]: This is our preferred build system for Unix-like systems.
+* [CMake]: Build tool for Unix and Windows.
 * GNU [Autotools]: Another traditional build system for Unix-like
   systems.
-* nmake: Unsupported; used only for Windows.
+* nmake: Unsupported; used only for Windows and Microsoft Visual
+  Studio 2013 or later.
 
 Autotools is only supported on Unix-like OSes, nmake is only for Windows,
 meson works for both.
 
 [Meson]: https://mesonbuild.com
+[CMake]: https://cmake.org
 [Autotools]: https://autotools.io/index.html
 
 
@@ -189,13 +192,13 @@ make install
 
 ## Using nmake on Windows
 
-At least using MS Visual C++ 6, you can build from the unmodified
-sources with [makefile.msc](makefile.msc) by issuing, in a command
-shell:
+Bzip2 can be built with Microsoft Visual Studio 2013 or later. From a Visual
+Studio Tools Command Prompt run:
 
 ```
 nmake -f makefile.msc
 ```
 
-(you may need to first run the MSVC-provided script `VCVARS32.BAT`
-so as to set up paths to the MSVC tools correctly).
+The build will produce `bzip2.exe` and `bzip2recover.exe` files that are dependent
+on `bz2-1.dll` and the Microsoft C Runtime library. Dynamic import and static
+libraries are also built: `bz2-1.lib` and `bz2-static.lib`.
