@@ -51,7 +51,8 @@ Special thanks:
   and interesting anecdotes.
 
 * Mark Wielaard for constructing a repository based on tarballs from
-  the original releases.
+  the original releases.  For a different construction by Evan Nemerson, see
+  https://gitlab.com/federicomenaquintero/bzip2/issues/7
 
 * Erich Córdoba and Jordan Petridis for the Continuous Integration
   infrastructure.
