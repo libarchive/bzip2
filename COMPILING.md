@@ -4,17 +4,13 @@ The following build systems are available for Bzip2:
 
 * [Meson]: This is our preferred build system for Unix-like systems.
 * [CMake]: Build tool for Unix and Windows.
-* GNU [Autotools]: Another traditional build system for Unix-like
-  systems.
 * nmake: Unsupported; used only for Windows and Microsoft Visual
   Studio 2013 or later.
 
-Autotools is only supported on Unix-like OSes, nmake is only for Windows,
-meson works for both.
+Meson works for Unix-like OSes and Windows; nmake is only for Windows.
 
 [Meson]: https://mesonbuild.com
 [CMake]: https://cmake.org
-[Autotools]: https://autotools.io/index.html
 
 
 ## Using Meson
@@ -162,32 +158,6 @@ mkdir build && cd build
 cmake ..
 cmake --build . --config Release
 ctest -C Release -V
-```
-
-## Using GNU Autotools
-
-### Build instructions for Unix (Autotools)
-
-If you are compiling a tarball:
-
-```sh
-./configure --prefix=/usr
-make
-make check
-make install
-```
-
-See the [`INSTALL`](INSTALL) file for details on options you can pass
-to the `configure` script to select where to install the compiled
-library.
-
-If you are compiling from a git checkout:
-
-```sh
-./autogen.sh --prefix=/usr
-make
-make check
-make install
 ```
 
 ## Using nmake on Windows
