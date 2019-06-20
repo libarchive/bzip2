@@ -13,21 +13,6 @@ variables:
 stages:
   - test
 
-.autotools_test:
-  stage: test
-  script:
-    - mkdir builddir && cd builddir
-    - ../autogen.sh
-    - make
-    - make check
-  after_script:
-    - cp builddir/config.status builddir/config.log .
-    - rm -rf builddir
-  artifacts:
-    paths:
-      - 'config.status'
-      - 'config.log'
-
 .meson_test:
   stage: test
   script:
@@ -62,13 +47,6 @@ debian:testing:
     - apt update -y
     - apt install -y gcc meson
 
-ubuntu:bionic:autotools:
-  extends: '.autotools_test'
-  image: $AMD64_UBUNTU_BIONIC
-  before_script:
-    - apt update -y
-    - apt install -y gcc make automake libtool
-
 ubuntu:bionic:cmake:
   extends: '.cmake_test'
   image: $AMD64_UBUNTU_BIONIC
@@ -98,16 +76,6 @@ fedora:30:
   image: $AMD64_FEDORA_LATEST
   before_script:
     - dnf install -y gcc meson
-
-fedora_mingw:latest:autotools:
-  image: $AMD64_FEDORA_LATEST
-  before_script:
-    - dnf install -y mingw64-gcc make automake libtool
-  script:
-    - mkdir builddir && cd builddir
-    - NOCONFIGURE=1 ../autogen.sh
-    - mingw64-configure
-    - make
 
 fedora:rawhide:
   extends: '.meson_test'
