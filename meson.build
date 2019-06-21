@@ -44,7 +44,7 @@ bz_sources = ['blocksort.c', 'huffman.c', 'crctable.c', 'randtable.c', 'compress
 ##
 ## KEEP THESE IN SYNC WITH CMakeLists.txt OR STUFF WILL BREAK!
 bz2_lt_current  = 1
-bz2_lt_revision = 6
+bz2_lt_revision = 7
 bz2_lt_age      = 0
 
 bz2_soversion   = bz2_lt_current - bz2_lt_age
