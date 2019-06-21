@@ -27,13 +27,37 @@ endif
 
 bz_sources = ['blocksort.c', 'huffman.c', 'crctable.c', 'randtable.c', 'compress.c', 'decompress.c', 'bzlib.c']
 
+## Library versioning
+##
+## New package version:
+##   revision += 1
+##
+## New interfaces:
+##   current += 1
+##   revision = 0
+##   age += 1
+##
+## Deleted/changed interfaces:
+##   current += 1
+##   revision = 0
+##   age = 0
+##
+## KEEP THESE IN SYNC WITH CMakeLists.txt OR STUFF WILL BREAK!
+bz2_lt_current  = 1
+bz2_lt_revision = 6
+bz2_lt_age      = 0
+
+bz2_soversion   = bz2_lt_current - bz2_lt_age
+bz2_lt_version  = '@0@.@1@.@2@'.format(bz2_soversion, bz2_lt_age, bz2_lt_revision)
+
 if ['msvc', 'clang-cl', 'intel-cl'].contains(cc.get_id())
   libbzip2 = library(
     'bz2',
     bz_sources,
     c_args : c_args,
     vs_module_defs : 'libbz2.def',
-    version : meson.project_version(),
+    version : bz2_lt_version,
+    soversion : bz2_soversion,
     install : true,
   )
 else
@@ -42,7 +66,8 @@ else
     bz_sources,
     c_args : c_args,
     gnu_symbol_visibility : 'hidden',
-    version : meson.project_version(),
+    version : bz2_lt_version,
+    soversion : bz2_soversion,
     install : true,
   )
 endif

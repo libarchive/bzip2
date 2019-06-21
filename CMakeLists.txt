@@ -7,6 +7,8 @@ project(bzip2
 
 # See versioning rule:
 #  http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
+#
+# KEEP THESE IN SYNC WITH meson.build OR STUFF WILL BREAK!
 set(LT_CURRENT  1)
 set(LT_REVISION 6)
 set(LT_AGE      0)
