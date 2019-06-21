@@ -20,7 +20,8 @@ if host_machine.system() == 'windows'
 endif
 
 c_args = []
-if cc.has_function_attribute('visibility')
+# The or is a workaround for https://github.com/mesonbuild/meson/issues/5530
+if cc.has_function_attribute('visibility') or (cc.get_id() == 'clang' and host_machine.system() == 'darwin')
   c_args += '-DBZ_EXTERN=__attribute__((__visibility__("default")))'
 endif
 
