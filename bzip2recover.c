@@ -309,7 +309,8 @@ Int32 main ( Int32 argc, Char** argv )
    UInt32      buffHi, buffLo, blockCRC;
    Char*       p;
 
-   strcpy ( progName, argv[0] );
+   strncpy ( progName, argv[0], BZ_MAX_FILENAME-1);
+   progName[BZ_MAX_FILENAME-1]='\0';
    inFileName[0] = outFileName[0] = 0;
 
    fprintf ( stderr, 
