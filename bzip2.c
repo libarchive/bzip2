@@ -2003,12 +2003,14 @@ IntNative main ( IntNative argc, Char *argv[] )
             testf ( aa->name );
 	 }
       }
-      if (testFailsExist && noisy) {
-         fprintf ( stderr,
-           "\n"
-           "You can use the `bzip2recover' program to attempt to recover\n"
-           "data from undamaged sections of corrupted files.\n\n"
-         );
+      if (testFailsExist) {
+	 if (noisy) {
+            fprintf ( stderr,
+               "\n"
+               "You can use the `bzip2recover' program to attempt to recover\n"
+               "data from undamaged sections of corrupted files.\n\n"
+            );
+	 }
          setExit(2);
          exit(exitValue);
       }
