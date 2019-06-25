@@ -16,6 +16,13 @@ set(LT_AGE      0)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 include(Version)
 
+set(BZ_VERSION ${PROJECT_VERSION})
+configure_file (
+  "${PROJECT_SOURCE_DIR}/bz_version.h.in"
+  "${PROJECT_BINARY_DIR}/bz_version.h"
+)
+include_directories("${PROJECT_BINARY_DIR}")
+
 math(EXPR LT_SOVERSION "${LT_CURRENT} - ${LT_AGE}")
 set(LT_VERSION "${LT_SOVERSION}.${LT_AGE}.${LT_REVISION}")
 set(PACKAGE_VERSION "${PROJECT_VERSION}")
