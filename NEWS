@@ -34,6 +34,9 @@ distributions since bzip2-1.0.6:
 * Fix a 'not a normal file' error when compressing large files on
   Windows (Phil Ross)
 
+* Don't let bzip2recover overwrite existing output files by default
+  (Colin Phipps)
+
 This is a new bugfix:
 
 * CVE-2019-12900 - Detect out-of-range nSelectors in corrupted files
