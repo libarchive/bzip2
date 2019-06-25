@@ -12,7 +12,7 @@ distributions since bzip2-1.0.6:
 
 * Fix bashisms in bzgrep (Led).
 
-* Fix unsafe strcpy in bzip2recover (Red Hat).
+* Fix unsafe strcpy in bzip2recover (Ivana Varekova).
 
 * Fix bzgrep so it doesn't always return a 0 exit code (Kristýna Streitová)
 
