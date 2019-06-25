@@ -20,6 +20,19 @@
 /* This program is a complete hack and should be rewritten properly.
 	 It isn't very complicated. */
 
+/* Place a 1 beside your platform, and 0 elsewhere.
+   Generic 32-bit Unix.
+   Also works on 64-bit Unix boxes.
+   This is the default.
+*/
+#define BZ_UNIX      1
+#if BZ_UNIX
+#   include <fcntl.h>
+#   include <sys/types.h>
+#   include <sys/stat.h>
+#   include <unistd.h>
+#endif
+
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -269,6 +282,27 @@ static Bool endsInBz2 ( Char* name )
        name[n-1] == '2');
 }
 
+/* Same as from bzip2.c
+ *
+ * Opens a file, but refuses to overwrite an existing one.
+ */
+static
+FILE* fopen_output_safely ( Char* name, const char* mode )
+{
+#  if BZ_UNIX
+   FILE*     fp;
+   int       fh;
+   fh = open(name, O_WRONLY|O_CREAT|O_EXCL, S_IWUSR|S_IRUSR);
+   if (fh == -1) return NULL;
+   fp = fdopen(fh, mode);
+   if (fp == NULL) close(fh);
+   return fp;
+#  else
+   return fopen(name, mode);
+#  endif
+}
+
+
 
 /*---------------------------------------------------*/
 /*---                                             ---*/
@@ -488,7 +522,7 @@ Int32 main ( Int32 argc, Char** argv )
          fprintf ( stderr, "   writing block %d to `%s' ...\n",
                            wrBlock+1, outFileName );
 
-         outFile = fopen ( outFileName, "wb" );
+         outFile = fopen_output_safely ( outFileName, "wb" );
          if (outFile == NULL) {
             fprintf ( stderr, "%s: can't write `%s'\n",
                       progName, outFileName );
