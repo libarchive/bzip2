@@ -6,6 +6,14 @@ project(
   default_options : ['c_std=c89', 'warning_level=1'],
 )
 
+conf_data = configuration_data()
+conf_data.set('BZ_VERSION', meson.project_version())
+configure_file(
+  input: 'bz_version.h.in',
+  output: 'bz_version.h',
+  configuration: conf_data
+)
+
 cc = meson.get_compiler('c')
 add_project_arguments(cc.get_supported_arguments([
     '-Winline',

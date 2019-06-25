@@ -29,6 +29,7 @@
 */
 
 #include "bzlib_private.h"
+#include "bz_version.h"
 
 
 /*---------------------------------------------------*/

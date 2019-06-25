@@ -36,8 +36,6 @@
 
 /*-- General stuff. --*/
 
-#define BZ_VERSION  "1.0.6, 6-Sept-2010"
-
 typedef char            Char;
 typedef unsigned char   Bool;
 typedef unsigned char   UChar;
