@@ -13,10 +13,12 @@ distributions since bzip2-1.0.6:
 * Fix bashisms in bzgrep (Led).
 
 * Fix unsafe strcpy in bzip2recover (Ivana Varekova).
+  https://bugzilla.redhat.com/show_bug.cgi?id=226979
 
 * Fix bzgrep so it doesn't always return a 0 exit code (Kristýna Streitová)
 
 * CVE-2016-3189 - Fix use-after-free in bzip2recover (Jakub Martisko)
+  https://bugzilla.redhat.com/show_bug.cgi?id=1319648
 
 * Use O_CLOEXEC for bzopen()
 
