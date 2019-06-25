@@ -24,6 +24,7 @@ echo "Requires a sourceware account in the bzip2 group."
 echo
 echo "Make sure the git repo was tagged, signed and pushed"
 echo "If not, please double check the source tree is release ready first"
+echo "You probably want to run ./prepare-release.sh $VERSION first."
 echo "Then do:"
 echo
 echo "    git tag -s -m \"bzip2 $VERSION release\" bzip2-$VERSION"

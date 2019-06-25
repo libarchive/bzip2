@@ -1609,7 +1609,7 @@ void license ( void )
     "   \n"
     "   This program is free software; you can redistribute it and/or modify\n"
     "   it under the terms set out in the LICENSE file, which is included\n"
-    "   in the bzip2-1.0.6 source distribution.\n"
+    "   in the bzip2 source distribution.\n"
     "   \n"
     "   This program is distributed in the hope that it will be useful,\n"
     "   but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
