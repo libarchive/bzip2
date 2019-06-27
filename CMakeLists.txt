@@ -92,7 +92,7 @@ include(CheckTypeSize)
 # Checks for typedefs, structures, and compiler characteristics.
 # AC_TYPE_SIZE_T
 check_type_size("ssize_t" SIZEOF_SSIZE_T)
-if(SIZEOF_SSIZE_T STREQUAL "")
+if(NOT SIZEOF_SSIZE_T)
     # ssize_t is a signed type in POSIX storing at least -1.
     # Set it to "int" to match the behavior of AC_TYPE_SSIZE_T (autotools).
     set(ssize_t int)
@@ -100,10 +100,6 @@ endif()
 
 include(CheckStructHasMember)
 check_struct_has_member("struct tm" tm_gmtoff time.h HAVE_STRUCT_TM_TM_GMTOFF)
-
-# Check size of pointer to decide we need 8 bytes alignment adjustment.
-check_type_size("int *"   SIZEOF_INT_P)
-check_type_size("time_t"  SIZEOF_TIME_T)
 
 # Checks for library functions.
 include(CheckFunctionExists)
