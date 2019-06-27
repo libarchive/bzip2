@@ -137,7 +137,7 @@ bzip2recover.o: bzip2recover.c
 distclean: clean
 	rm -f manual.ps manual.html manual.pdf
 
-DISTNAME=bzip2-1.0.6
+DISTNAME=bzip2-1.0.7
 dist: check manual
 	rm -f $(DISTNAME)
 	ln -s -f . $(DISTNAME)
