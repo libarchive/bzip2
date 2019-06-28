@@ -32,6 +32,12 @@ def test_compress(args: argparse.Namespace) -> None:
         stdout=subprocess.PIPE,
         input=input_)
     if p.returncode != 0:
+        print('bzip2 failed to run', file=sys.stderr)
+        sys.exit(1)
+
+    actual = p.stdout
+    if actual != expected:
+        print('comparison of actual and expected output failed', file=sys.stderr)
         sys.exit(1)
 
 
@@ -44,7 +50,8 @@ def test_decompress(args: argparse.Namespace) -> None:
         stdout=subprocess.PIPE,
         input=input_)
     if p.returncode != 0:
-        sys.exit(2)
+        print('bzip2 failed to compress', file=sys.stderr)
+        sys.exit(1)
     compressed = p.stdout
     dargs = '-d' if args.bzip_arg != '-3' else '-ds'
     p = subprocess.run(
@@ -53,6 +60,12 @@ def test_decompress(args: argparse.Namespace) -> None:
         input=compressed,
     )
     if p.returncode != 0:
+        print('bzip2 failed to decompress', file=sys.stderr)
+        sys.exit(1)
+
+    actual = p.stdout
+    if input_ != actual:
+        print('comparison of actual and expected output failed', file=sys.stderr)
         sys.exit(1)
 
 
