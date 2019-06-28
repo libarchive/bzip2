@@ -101,6 +101,19 @@ install_data(
   install_mode : 'rwxr-xr-x',
 )
 
+## Create aliases. Use links if possible, but copies if not.
+# Copies are mainly meant for windows, which doesn't have symlinks.
+bindir = get_option('bindir')
+targets = [['bzmore', 'bzless'], ['bzdiff', 'bzcmp'], ['bzgrep', 'bzegrep', 'bzfgrep'],
+           ['bzip2', 'bunzip2', 'bzcat']]
+extra_args = []
+if host_machine.system() != 'windows' and build_machine.system() != 'windows'
+  extra_args = '--use-links'
+endif
+foreach t : targets
+  meson.add_install_script('install_links.py', get_option('bindir'), t, extra_args)
+endforeach
+
 ## Generate pkg-config automaically from built library information
 pkg = import('pkgconfig')
 pkg.generate(
