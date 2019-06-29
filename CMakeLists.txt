@@ -277,7 +277,21 @@ if(ENABLE_APP)
         PRIVATE   bz2_ObjLib)
     install(TARGETS bzip2 DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
-    # The bzip2 executable.
+    # Create bzip2 copies bzcat and bunzip.
+    # The default behavior is altered in bzip2.c code by checking the program name.
+    if(WIN32)
+        ADD_CUSTOM_COMMAND(TARGET bzip2 POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/bzip2.exe ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/bzcat.exe)
+        install(PROGRAMS ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/bzcat.exe DESTINATION "${CMAKE_INSTALL_BINDIR}")
+        ADD_CUSTOM_COMMAND(TARGET bzip2 POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/bzip2.exe ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/bunzip.exe)
+        install(PROGRAMS ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/bunzip.exe DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    else()
+        install(PROGRAMS ${CMAKE_BINARY_DIR}/bzip2 DESTINATION "${CMAKE_INSTALL_BINDIR}" RENAME bzcat)
+        install(PROGRAMS ${CMAKE_BINARY_DIR}/bzip2 DESTINATION "${CMAKE_INSTALL_BINDIR}" RENAME bunzip)
+    endif()
+
+    # The bzip2recover executable.
     add_executable(bzip2recover)
     target_sources(bzip2recover
         PRIVATE   "bzip2recover.c")
@@ -295,6 +309,28 @@ if(ENABLE_APP)
             install(TARGETS dlltest DESTINATION "${CMAKE_INSTALL_BINDIR}")
         endif()
     endif()
+
+    if(NOT WIN32)
+        # Install shell scripts, and renamed copies.
+        install(PROGRAMS bzdiff bzgrep bzmore
+            DESTINATION "${CMAKE_INSTALL_BINDIR}")
+
+        install(PROGRAMS bzdiff
+            DESTINATION "${CMAKE_INSTALL_BINDIR}"
+            RENAME bzcmp)
+
+        install(PROGRAMS bzgrep
+            DESTINATION "${CMAKE_INSTALL_BINDIR}"
+            RENAME bzegrep)
+        install(PROGRAMS bzgrep
+            DESTINATION "${CMAKE_INSTALL_BINDIR}"
+            RENAME bzfgrep)
+
+        install(PROGRAMS bzmore
+            DESTINATION "${CMAKE_INSTALL_BINDIR}"
+            RENAME bzless)
+    endif()
+
 endif()
 
 if(Python3_FOUND)
