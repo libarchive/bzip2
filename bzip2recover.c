@@ -25,7 +25,6 @@
    Also works on 64-bit Unix boxes.
    This is the default.
 */
-#define BZ_UNIX      1
 #if BZ_UNIX
 #   include <fcntl.h>
 #   include <sys/types.h>
