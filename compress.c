@@ -454,7 +454,7 @@ void sendMTFValues ( EState* s )
 
    AssertH( nGroups < 8, 3002 );
    AssertH( nSelectors < 32768 &&
-            nSelectors <= (2 + (900000 / BZ_G_SIZE)),
+            nSelectors <= BZ_MAX_SELECTORS,
             3003 );
 
 
