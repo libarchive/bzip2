@@ -20,23 +20,25 @@ fi
 LANG=C
 VERSION="$1"
 DATE=$(date +"%d %B %Y")
-
-# Replace the version strings in the comments
-VER_PREFIX="bzip2/libbzip2 version "
-sed -i -e "s@${VER_PREFIX}[0-9].*@${VER_PREFIX}${VERSION} of ${DATE}@" \
-  CHANGES LICENSE README* *.c *.h *.pl *.sh
-
-# Add an entry to the README
 DAY=$(date +"%d")
 MONTH=$(date +"%B")
 SHORTMONTH=$(date +"%b")
 YEAR=$(date +"%Y")
+
+# Replace the version strings and date ranges in the comments
+VER_PREFIX="bzip2/libbzip2 version "
+sed -i -e "s@${VER_PREFIX}[0-9].*@${VER_PREFIX}${VERSION} of ${DATE}@" \
+       -e "s@ (C) \([0-9]\+\)-[0-9]\+ @ (C) \1-$YEAR @" \
+  CHANGES LICENSE Makefile* README* *.c *.h *.pl *.sh
+
+# Add an entry to the README
 printf "%2s %8s %s\n" "$DAY" "$MONTH" "$YEAR (bzip2, version $VERSION)" \
   >> README
 
 # Update manual
 sed -i -e "s@ENTITY bz-version \".*\"@ENTITY bz-version \"$VERSION\"@" \
        -e "s@ENTITY bz-date \".*\"@ENTITY bz-date \"$DAY $MONTH $YEAR\"@" \
+       -e "s@ENTITY bz-lifespan \"\([0-9]\+\)-[0-9]\+\"@ENTITY bz-filespan \"\1-$YEAR\"@"\
   entities.xml
 
 # bzip2.1 should really be generated from the manual.xml, but currently
