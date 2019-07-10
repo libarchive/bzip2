@@ -1,9 +1,9 @@
-
 cmake_minimum_required(VERSION 3.12)
 
 project(bzip2
          VERSION 1.0.7
-         DESCRIPTION "This Bzip2/libbz2 a program and library for lossless block-sorting data compression.")
+         DESCRIPTION "This Bzip2/libbz2 a program and library for lossless block-sorting data compression."
+         LANGUAGES C)
 
 # See versioning rule:
 #  http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
@@ -46,7 +46,7 @@ endif()
 
 # Do not disable assertions based on CMAKE_BUILD_TYPE.
 foreach(_build_type "Release" "MinSizeRel" "RelWithDebInfo")
-  foreach(_lang C CXX)
+  foreach(_lang C)
     string(TOUPPER "CMAKE_${_lang}_FLAGS_${_build_type}" _var)
     string(REGEX REPLACE "(^|)[/-]D *NDEBUG($|)" " " ${_var} "${${_var}}")
   endforeach()
@@ -54,13 +54,6 @@ endforeach()
 
 # Support the latest c++ standard available.
 include(ExtractValidFlags)
-foreach(_cxx1x_flag -std=c++14 -std=c++11)
-  extract_valid_cxx_flags(_cxx1x_flag_supported ${_cxx1x_flag})
-  if(_cxx1x_flag_supported)
-    set(CXX1XCXXFLAGS ${_cxx1x_flag})
-    break()
-  endif()
-endforeach()
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the build type" FORCE)
@@ -99,7 +92,7 @@ include(CheckTypeSize)
 # Checks for typedefs, structures, and compiler characteristics.
 # AC_TYPE_SIZE_T
 check_type_size("ssize_t" SIZEOF_SSIZE_T)
-if(SIZEOF_SSIZE_T STREQUAL "")
+if(NOT SIZEOF_SSIZE_T)
     # ssize_t is a signed type in POSIX storing at least -1.
     # Set it to "int" to match the behavior of AC_TYPE_SSIZE_T (autotools).
     set(ssize_t int)
@@ -107,10 +100,6 @@ endif()
 
 include(CheckStructHasMember)
 check_struct_has_member("struct tm" tm_gmtoff time.h HAVE_STRUCT_TM_TM_GMTOFF)
-
-# Check size of pointer to decide we need 8 bytes alignment adjustment.
-check_type_size("int *"   SIZEOF_INT_P)
-check_type_size("time_t"  SIZEOF_TIME_T)
 
 # Checks for library functions.
 include(CheckFunctionExists)
@@ -130,16 +119,13 @@ if(NOT HAVE_DECL_INITGROUPS AND HAVE_UNISTD_H)
 endif()
 
 set(WARNCFLAGS)
-set(WARNCXXFLAGS)
 if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
     if(ENABLE_WERROR)
         set(WARNCFLAGS    /WX)
-        set(WARNCXXFLAGS  /WX)
     endif()
 else()
     if(ENABLE_WERROR)
         extract_valid_c_flags(WARNCFLAGS    -Werror)
-        extract_valid_c_flags(WARNCXXFLAGS  -Werror)
     endif()
 
     # For C compiler
@@ -185,12 +171,6 @@ else()
         -Wredundant-decls
         # -Wheader-guard                    # Only work with Clang for the moment
         -Wno-format-nonliteral              # This is required because we pass format string as "const char*.
-    )
-
-    # For C++ compiler
-    extract_valid_cxx_flags(WARNCXXFLAGS
-        -Wall
-        -Wformat-security
     )
 endif()
 
@@ -353,12 +333,8 @@ message(STATUS "Summary of build options:
     Compiler:
         Build type:     ${CMAKE_BUILD_TYPE}
         C compiler:     ${CMAKE_C_COMPILER}
-        C++ compiler:   ${CMAKE_CXX_COMPILER}
         CFLAGS:         ${CMAKE_C_FLAGS_${_build_type}} ${CMAKE_C_FLAGS}
         WARNCFLAGS:    ${WARNCFLAGS}
-        CXXFLAGS:       ${CMAKE_CXX_FLAGS_${_build_type}} ${CMAKE_CXX_FLAGS}
-        CXX1XCXXFLAGS:  ${CXX1XCXXFLAGS}
-        WARNCXXFLAGS:  ${WARNCXXFLAGS}
     Test:
         Python:         ${Python3_FOUND} (${Python3_VERSION}, ${Python3_EXECUTABLE})
     Docs:
