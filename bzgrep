@@ -63,9 +63,7 @@ for i do
     bzip2 -cdfq "$i" | $grep $opt "$pat"
     r=$?
   else
-    j=${i//\\/\\\\}
-    j=${j//|/\\|}
-    j=${j//&/\\&}
+    j=$(echo "$i" | sed 's/\\/&&/g;s/|/\\&/g;s/&/\\&/g')
     j=`printf "%s" "$j" | tr '\n' ' '`
     bzip2 -cdfq "$i" | $grep $opt "$pat" | sed "s|^|${j}:|"
     r=$?
