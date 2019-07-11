@@ -76,6 +76,10 @@ git clone ssh://sourceware.org/git/bzip2-htdocs.git
 cp bzip2/CHANGES bzip2/bzip.css bzip2-htdocs/
 cp bzip2/bzip.css bzip2/bzip2.txt bzip2/manual.{html,pdf} bzip2-htdocs/manual/
 cd bzip2-htdocs
+
+# Update version in html pages.
+sed -i -e "s/The current stable version is bzip2 [0-9]\.[0-9]\.[0-9]\+/The current stable version is bzip2 ${VERSION}/" *.html */*.html
+
 git commit -a -m "Update for bzip2 $VERSION release"
 git show
 git push
