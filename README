@@ -165,8 +165,8 @@ WHAT'S NEW IN 1.0.x ?
 
    See the CHANGES file.
 
-I hope you find bzip2 useful.  Feel free to contact me at
-   jseward@acm.org
+I hope you find bzip2 useful.  Feel free to contact the developers at
+   bzip2-devel@sourceware.org
 if you have any suggestions or queries.  Many people mailed me with
 comments, suggestions and patches after the releases of bzip-0.15,
 bzip-0.21, and bzip2 versions 0.1pl2, 0.9.0, 0.9.5, 1.0.0, 1.0.1,

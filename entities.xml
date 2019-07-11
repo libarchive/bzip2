@@ -1,6 +1,7 @@
 <!-- misc. strings -->
 <!ENTITY bz-url "https://sourceware.org/bzip2/">
-<!ENTITY bz-email "jseward@acm.org">
+<!ENTITY bz-author "jseward@acm.org">
+<!ENTITY bz-email "bzip2-devel@sourceware.org">
 <!ENTITY bz-lifespan "1996-2010">
 
 <!ENTITY bz-version "1.0.7">
