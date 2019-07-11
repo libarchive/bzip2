@@ -27,7 +27,7 @@
    </author>
   </authorgroup>
 
-  <legalnotice>
+  <legalnotice id="legal">
 
   <para>This program, <computeroutput>bzip2</computeroutput>, the
   associated library <computeroutput>libbzip2</computeroutput>, and
