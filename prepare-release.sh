@@ -38,7 +38,7 @@ printf "%2s %8s %s\n" "$DAY" "$MONTH" "$YEAR (bzip2, version $VERSION)" \
 # Update manual
 sed -i -e "s@ENTITY bz-version \".*\"@ENTITY bz-version \"$VERSION\"@" \
        -e "s@ENTITY bz-date \".*\"@ENTITY bz-date \"$DAY $MONTH $YEAR\"@" \
-       -e "s@ENTITY bz-lifespan \"\([0-9]\+\)-[0-9]\+\"@ENTITY bz-filespan \"\1-$YEAR\"@"\
+       -e "s@ENTITY bz-lifespan \"\([0-9]\+\)-[0-9]\+\"@ENTITY bz-lifespan \"\1-$YEAR\"@"\
   entities.xml
 
 # bzip2.1 should really be generated from the manual.xml, but currently
