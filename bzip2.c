@@ -7,8 +7,8 @@
    This file is part of bzip2/libbzip2, a program and library for
    lossless, block-sorting data compression.
 
-   bzip2/libbzip2 version 1.0.7 of 27 June 2019
-   Copyright (C) 1996-2010 Julian Seward <jseward@acm.org>
+   bzip2/libbzip2 version 1.0.8 of 13 July 2019
+   Copyright (C) 1996-2019 Julian Seward <jseward@acm.org>
 
    Please read the WARNING, DISCLAIMER and PATENTS sections in the 
    README file.
@@ -1605,7 +1605,7 @@ void license ( void )
     "bzip2, a block-sorting file compressor.  "
     "Version %s.\n"
     "   \n"
-    "   Copyright (C) 1996-2010 by Julian Seward.\n"
+    "   Copyright (C) 1996-2019 by Julian Seward.\n"
     "   \n"
     "   This program is free software; you can redistribute it and/or modify\n"
     "   it under the terms set out in the LICENSE file, which is included\n"
