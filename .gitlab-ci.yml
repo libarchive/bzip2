@@ -45,7 +45,7 @@ debian:testing:
   image: $AMD64_DEBIAN_TESTING
   before_script:
     - apt update -y
-    - apt install -y gcc meson
+    - apt install -y gcc meson python3-distutils
 
 ubuntu:bionic:cmake:
   extends: '.cmake_test'
