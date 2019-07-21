@@ -13,6 +13,9 @@ bzip2recover \- recovers data from damaged bzip2 files
 [
 .I "filenames \&..."
 ]
+.br
+.B bzip2
+.RB [ " \-h|\-\-help " ]
 .ll -8
 .br
 .B bunzip2
@@ -21,11 +24,17 @@ bzip2recover \- recovers data from damaged bzip2 files
 .I "filenames \&..."
 ]
 .br
+.B bunzip2
+.RB [ " \-h|\-\-help " ]
+.br
 .B bzcat
 .RB [ " \-s " ]
 [
 .I "filenames \&..."
 ]
+.br
+.B bzcat
+.RB [ " \-h|\-\-help " ]
 .br
 .B bzip2recover
 .I "filename"
@@ -248,6 +257,9 @@ I/O errors and other critical events will not be suppressed.
 Verbose mode -- show the compression ratio for each file processed.
 Further \-v's increase the verbosity level, spewing out lots of
 information which is primarily of interest for diagnostic purposes.
+.TP
+.B \-h \-\-help
+Print a help message and exit.
 .TP
 .B \-L --license -V --version
 Display the software version, license terms and conditions.

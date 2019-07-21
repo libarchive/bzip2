@@ -160,11 +160,20 @@ else.</para>
  <listitem><para><computeroutput>bzip2</computeroutput> [
   -cdfkqstvzVL123456789 ] [ filenames ...  ]</para></listitem>
 
+ <listitem><para><computeroutput>bzip2</computeroutput> [
+  -h | --help ]</para></listitem>
+
  <listitem><para><computeroutput>bunzip2</computeroutput> [
   -fkvsVL ] [ filenames ...  ]</para></listitem>
 
+ <listitem><para><computeroutput>bunzip2</computeroutput> [
+  -h | --help ]</para></listitem>
+
  <listitem><para><computeroutput>bzcat</computeroutput> [ -s ] [
   filenames ...  ]</para></listitem>
+
+ <listitem><para><computeroutput>bzcat</computeroutput> [
+  -h | --help ]</para></listitem>
 
  <listitem><para><computeroutput>bzip2recover</computeroutput>
   filename</para></listitem>
@@ -395,6 +404,10 @@ consistency error (eg, bug) which caused
  <listitem><para>Suppress non-essential warning messages.
   Messages pertaining to I/O errors and other critical events
   will not be suppressed.</para></listitem>
+ </varlistentry>
+
+ <varlistentry><term><computeroutput>-h --help</computeroutput></term>
+ <listitem><para>Print a help message and exit.</para></listitem>
  </varlistentry>
 
  <varlistentry>
