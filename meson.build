@@ -16,7 +16,48 @@ configure_file(
 
 cc = meson.get_compiler('c')
 add_project_arguments(cc.get_supported_arguments([
+    # Please keep this list in sync with CMakeLists.txt
+    '-Wall',
+    '-Wextra',
+    '-Wmissing-prototypes',
+    '-Wstrict-prototypes',
+    '-Wmissing-declarations',
+    '-Wpointer-arith',
+    '-Wdeclaration-after-statement',
+    '-Wformat-security',
+    '-Wwrite-strings',
+    '-Wshadow',
     '-Winline',
+    '-Wnested-externs',
+    '-Wfloat-equal',
+    '-Wundef',
+    '-Wendif-labels',
+    '-Wempty-body',
+    '-Wcast-align',
+    '-Wclobbered',
+    '-Wvla',
+    '-Wpragmas',
+    '-Wunreachable-code',
+    '-Waddress',
+    '-Wattributes',
+    '-Wdiv-by-zero',
+    '-Wshorten-64-to-32',
+    '-Wconversion',
+    '-Wextended-offsetof',
+    '-Wformat-nonliteral',
+    '-Wlanguage-extension-token',
+    '-Wmissing-field-initializers',
+    '-Wmissing-noreturn',
+    '-Wmissing-variable-declarations',
+    # '-Wpadded',                         # Not used because we cannot change public structs
+    '-Wsign-conversion',
+    # '-Wswitch-enum',                    # Not used because this basically disallows default case
+    '-Wunreachable-code-break',
+    '-Wunused-macros',
+    '-Wunused-parameter',
+    '-Wredundant-decls',
+    '-Wheader-guard',
+    '-Wno-format-nonliteral',             # This is required because we pass format string as "const char*.
   ]),
   language : 'c',
 )
