@@ -129,6 +129,7 @@ else()
     endif()
 
     # For C compiler
+    # Please keep this list in sync with meson.build
     extract_valid_c_flags(WARNCFLAGS
         -Wall
         -Wextra
@@ -154,22 +155,22 @@ else()
         -Waddress
         -Wattributes
         -Wdiv-by-zero
-        # -Wshorten-64-to-32                # May be missing from GCC
+        -Wshorten-64-to-32
         -Wconversion
-        # -Wextended-offsetof               # May be missing from GCC
+        -Wextended-offsetof
         -Wformat-nonliteral
-        # -Wlanguage-extension-token        # May be missing from GCC
+        -Wlanguage-extension-token
         -Wmissing-field-initializers
         -Wmissing-noreturn
-        # -Wmissing-variable-declarations   # May be missing from GCC
+        -Wmissing-variable-declarations
         # -Wpadded                          # Not used because we cannot change public structs
         -Wsign-conversion
         # -Wswitch-enum                     # Not used because this basically disallows default case
-        # -Wunreachable-code-break          # May be missing from GCC
+        -Wunreachable-code-break
         -Wunused-macros
         -Wunused-parameter
         -Wredundant-decls
-        # -Wheader-guard                    # Only work with Clang for the moment
+        -Wheader-guard
         -Wno-format-nonliteral              # This is required because we pass format string as "const char*.
     )
 endif()
