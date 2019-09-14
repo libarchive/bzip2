@@ -18,30 +18,6 @@
    ------------------------------------------------------------------ */
 
 
-/* Place a 1 beside your platform, and 0 elsewhere.
-   Generic 32-bit Unix.
-   Also works on 64-bit Unix boxes.
-   This is the default.
-*/
-#define BZ_UNIX      1
-
-/*--
-  Win32, as seen by Jacob Navia's excellent
-  port of (Chris Fraser & David Hanson)'s excellent
-  lcc compiler.  Or with MS Visual C.
-  This is selected automatically if compiled by a compiler which
-  defines _WIN32, not including the Cygwin GCC.
---*/
-#define BZ_LCCWIN32  0
-
-#if defined(_WIN32) && !defined(__CYGWIN__)
-#undef  BZ_LCCWIN32
-#define BZ_LCCWIN32 1
-#undef  BZ_UNIX
-#define BZ_UNIX 0
-#endif 
-
-
 /*---------------------------------------------*/
 /*--
   Some stuff for all platforms.

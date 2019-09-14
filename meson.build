@@ -66,6 +66,11 @@ add_project_arguments('-D_GNU_SOURCE', language : 'c')
 
 if host_machine.system() == 'windows'
   add_project_arguments('-D_WIN32', language : 'c')
+  add_project_arguments('-DBZ_LCCWIN32', language : 'c')
+  add_project_arguments('-DBZ_UNIX=0', language : 'c')
+else
+  add_project_arguments('-DBZ_UNIX', language : 'c')
+  add_project_arguments('-DBZ_LCCWIN32=0', language : 'c')
 endif
 
 c_args = []

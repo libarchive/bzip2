@@ -13,6 +13,14 @@ set(LT_CURRENT  1)
 set(LT_REVISION 7)
 set(LT_AGE      0)
 
+if(WIN32)
+  add_definitions(-DBZ_LCCWIN32)
+  add_definitions(-DBZ_UNIX=0)
+else()
+  add_definitions(-DBZ_UNIX)
+  add_definitions(-DBZ_LCCWIN32=0)
+endif()
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 include(Version)
 
