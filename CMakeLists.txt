@@ -13,6 +13,10 @@ set(LT_CURRENT  1)
 set(LT_REVISION 7)
 set(LT_AGE      0)
 
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
+include(Version)
+include(SymLink)
+
 if(WIN32)
     add_definitions(-DBZ_LCCWIN32)
     add_definitions(-DBZ_UNIX=0)
@@ -20,9 +24,6 @@ else()
     add_definitions(-DBZ_UNIX)
     add_definitions(-DBZ_LCCWIN32=0)
 endif()
-
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
-include(Version)
 
 set(BZ_VERSION ${PROJECT_VERSION})
 configure_file (
@@ -288,17 +289,8 @@ if(ENABLE_APP)
 
     # Create bzip2 copies bzcat and bunzip.
     # The default behavior is altered in bzip2.c code by checking the program name.
-    if(WIN32)
-        ADD_CUSTOM_COMMAND(TARGET bzip2 POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/bzip2.exe ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/bzcat.exe)
-        install(PROGRAMS ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/bzcat.exe DESTINATION ${CMAKE_INSTALL_BINDIR})
-        ADD_CUSTOM_COMMAND(TARGET bzip2 POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/bzip2.exe ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/bunzip.exe)
-        install(PROGRAMS ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/bunzip.exe DESTINATION ${CMAKE_INSTALL_BINDIR})
-    else()
-        install(PROGRAMS ${CMAKE_BINARY_DIR}/bzip2 DESTINATION ${CMAKE_INSTALL_BINDIR} RENAME bzcat)
-        install(PROGRAMS ${CMAKE_BINARY_DIR}/bzip2 DESTINATION ${CMAKE_INSTALL_BINDIR} RENAME bunzip)
-    endif()
+    install_target_symlink(bzip2 bzcat)
+    install_target_symlink(bzip2 bunzip)
 
     # The bzip2recover executable.
     add_executable(bzip2recover)
@@ -324,20 +316,12 @@ if(ENABLE_APP)
         install(PROGRAMS bzdiff bzgrep bzmore
             DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-        install(PROGRAMS bzdiff
-            DESTINATION ${CMAKE_INSTALL_BINDIR}
-            RENAME bzcmp)
+        install_script_symlink(bzdiff bzcmp)
 
-        install(PROGRAMS bzgrep
-            DESTINATION ${CMAKE_INSTALL_BINDIR}
-            RENAME bzegrep)
-        install(PROGRAMS bzgrep
-            DESTINATION ${CMAKE_INSTALL_BINDIR}
-            RENAME bzfgrep)
+        install_script_symlink(bzgrep bzegrep)
+        install_script_symlink(bzgrep bzfgrep)
 
-        install(PROGRAMS bzmore
-            DESTINATION ${CMAKE_INSTALL_BINDIR}
-            RENAME bzless)
+        install_script_symlink(bzmore bzless)
     endif()
 
 endif()
