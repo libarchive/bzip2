@@ -17,14 +17,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 include(Version)
 include(SymLink)
 
-if(WIN32)
-    add_definitions(-DBZ_LCCWIN32)
-    add_definitions(-DBZ_UNIX=0)
-else()
-    add_definitions(-DBZ_UNIX)
-    add_definitions(-DBZ_LCCWIN32=0)
-endif()
-
 set(BZ_VERSION ${PROJECT_VERSION})
 configure_file (
     ${PROJECT_SOURCE_DIR}/bz_version.h.in
@@ -273,7 +265,7 @@ if(ENABLE_STATIC_LIB)
         VERSION             ${LT_VERSION}
         SOVERSION           ${LT_SOVERSION}
         ARCHIVE_OUTPUT_NAME bz2)
-    target_compile_definitions(bz2_static PUBLIC -DBZ2_STATICLIB)
+    target_compile_definitions(bz2_static PUBLIC BZ2_STATICLIB)
     install(TARGETS bz2_static DESTINATION ${CMAKE_INSTALL_LIBDIR})
     install(FILES bzlib.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 endif()
@@ -285,6 +277,11 @@ if(ENABLE_APP)
         PRIVATE   bzip2.c)
     target_link_libraries(bzip2
         PRIVATE   bz2_ObjLib)
+    if(WIN32)
+        target_compile_definitions(bzip2 PUBLIC BZ_LCCWIN32 BZ_UNIX=0)
+    else()
+        target_compile_definitions(bzip2 PUBLIC BZ_LCCWIN32=0 BZ_UNIX)
+    endif()
     install(TARGETS bzip2 DESTINATION ${CMAKE_INSTALL_BINDIR})
 
     # Create bzip2 copies bzcat and bunzip.
@@ -298,6 +295,11 @@ if(ENABLE_APP)
         PRIVATE   bzip2recover.c)
     target_link_libraries(bzip2recover
         PRIVATE bz2_ObjLib)
+    if(WIN32)
+        target_compile_definitions(bzip2recover PUBLIC BZ_LCCWIN32 BZ_UNIX=0)
+    else()
+        target_compile_definitions(bzip2recover PUBLIC BZ_LCCWIN32=0 BZ_UNIX)
+    endif()
     install(TARGETS bzip2recover DESTINATION ${CMAKE_INSTALL_BINDIR})
 
     if(ENABLE_EXAMPLES)
