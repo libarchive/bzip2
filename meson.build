@@ -2,7 +2,7 @@ project(
   'bzip2',
   ['c'],
   version : '1.0.7',
-  meson_version : '>= 0.48.0',
+  meson_version : '>= 0.50.0',
   default_options : ['c_std=c89', 'warning_level=1'],
 )
 
@@ -64,13 +64,13 @@ add_project_arguments(cc.get_supported_arguments([
 
 add_project_arguments('-D_GNU_SOURCE', language : 'c')
 
+os_defines = []
 if host_machine.system() == 'windows'
-  add_project_arguments('-D_WIN32', language : 'c')
-  add_project_arguments('-DBZ_LCCWIN32', language : 'c')
-  add_project_arguments('-DBZ_UNIX=0', language : 'c')
+  os_defines += '-DBZ_LCCWIN32=1'
+  os_defines += '-DBZ_UNIX=0'
 else
-  add_project_arguments('-DBZ_UNIX', language : 'c')
-  add_project_arguments('-DBZ_LCCWIN32=0', language : 'c')
+  os_defines += '-DBZ_LCCWIN32=0'
+  os_defines += '-DBZ_UNIX=1'
 endif
 
 c_args = []
@@ -131,6 +131,7 @@ bzip2 = executable(
   ['bzip2.c'],
   link_with : [libbzip2],
   install : true,
+  c_args : os_defines,
 )
 
 executable(
@@ -138,6 +139,7 @@ executable(
   ['bzip2recover.c'],
   link_with : [libbzip2],
   install : true,
+  c_args : os_defines,
 )
 
 ## Install wrapper scripts
