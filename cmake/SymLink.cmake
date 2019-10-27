@@ -14,12 +14,13 @@ endfunction()
 function(install_target_symlink original symlink)
     if(WIN32)
         set(op copy)
+        set(symlink "${symlink}.exe")
     else()
         set(op create_symlink)
     endif()
     add_custom_command(TARGET ${original} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E ${op} $<TARGET_FILE_NAME:${original}> ${symlink}$<TARGET_FILE_SUFFIX:${original}>
+        COMMAND ${CMAKE_COMMAND} -E ${op} $<TARGET_FILE_NAME:${original}> ${symlink}
         WORKING_DIRECTORY $<TARGET_FILE_DIR:${original}>
         COMMENT "Generating symbolic link (or copy) ${symlink} of ${original}")
-    install(PROGRAMS $<TARGET_FILE_DIR:${original}>/${symlink}$<TARGET_FILE_SUFFIX:${original}> DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(PROGRAMS $<TARGET_FILE_DIR:${original}>/${symlink} DESTINATION ${CMAKE_INSTALL_BINDIR})
 endfunction()
