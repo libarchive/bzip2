@@ -1,32 +1,45 @@
 environment:
   matrix:
-    - ARCH: 32
-      COMPILER: GCC
+
+    - COMPILER: MSVC2019
+      PLATFORM: x86
+      CC: cl.exe
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      CMAKE_GENERATOR: NMake Makefiles
+
+    - COMPILER: MSVC2019
+      PLATFORM: amd64
+      CC: cl.exe
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      CMAKE_GENERATOR: NMake Makefiles
+
+    - COMPILER: GCC
+      ARCH: 32
       CC: gcc.exe
       CMAKE_GENERATOR: MinGW Makefiles
 
-    - ARCH: 64
-      COMPILER: GCC
+    - COMPILER: GCC
+      ARCH: 64
       CC: gcc.exe
       CMAKE_GENERATOR: MinGW Makefiles
 
-    - PLATFORM: x86
-      COMPILER: MSVC2015
+    - COMPILER: MSVC2015
+      PLATFORM: x86
       CC: cl.exe
       CMAKE_GENERATOR: NMake Makefiles
 
-    - PLATFORM: amd64
-      COMPILER: MSVC2015
+    - COMPILER: MSVC2015
+      PLATFORM: amd64
       CC: cl.exe
       CMAKE_GENERATOR: NMake Makefiles
 
-    - PLATFORM: x86
-      COMPILER: MSVC2008
+    - COMPILER: MSVC2008
+      PLATFORM: x86
       CC: cl.exe
       CMAKE_GENERATOR: NMake Makefiles
 
-    - PLATFORM: amd64
-      COMPILER: MSVC2008
+    - COMPILER: MSVC2008
+      PLATFORM: amd64
       CC: cl.exe
       CMAKE_GENERATOR: NMake Makefiles
 
@@ -34,6 +47,7 @@ install:
 - if [%COMPILER%]==[MSVC2008] if [%PLATFORM%]==[amd64] call "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\bin\vcvars64.bat"
 - if [%COMPILER%]==[MSVC2008] if [%PLATFORM%]==[x86] call "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\bin\vcvars32.bat"
 - if [%COMPILER%]==[MSVC2015] call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %PLATFORM%
+- if [%COMPILER%]==[MSVC2019] call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM%
 - if [%COMPILER%]==[GCC] del /F /Q "C:\Program Files\Git\usr\bin\sh.exe"
 - if [%COMPILER%]==[GCC] set "PATH=C:\msys64\mingw%ARCH%\bin;%PATH%"
 
