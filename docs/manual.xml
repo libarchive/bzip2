@@ -1583,6 +1583,8 @@ BZ_MEM_ERROR
 BZ_STREAM_END
   if the logical end of the data stream was detected and all
   output in has been consumed, eg s-->avail_out > 0
+BZ_SEQUENCE_ERROR
+  if called after an earlier call already returned BZ_STREAM_END
 BZ_OK
   otherwise
 </programlisting>
