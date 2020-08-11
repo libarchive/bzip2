@@ -20,12 +20,6 @@
 /* This program is a complete hack and should be rewritten properly.
 	 It isn't very complicated. */
 
-/* Place a 1 beside your platform, and 0 elsewhere.
-   Generic 32-bit Unix.
-   Also works on 64-bit Unix boxes.
-   This is the default.
-*/
-#define BZ_UNIX      1
 #if BZ_UNIX
 #   include <fcntl.h>
 #   include <sys/types.h>
