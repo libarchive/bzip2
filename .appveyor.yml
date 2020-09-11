@@ -1,0 +1,68 @@
+environment:
+  matrix:
+
+    - COMPILER: MSVC2019
+      PLATFORM: x86
+      CC: cl.exe
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      CMAKE_GENERATOR: NMake Makefiles
+
+    - COMPILER: MSVC2019
+      PLATFORM: amd64
+      CC: cl.exe
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      CMAKE_GENERATOR: NMake Makefiles
+
+    - COMPILER: GCC
+      ARCH: 32
+      CC: gcc.exe
+      CMAKE_GENERATOR: MinGW Makefiles
+
+    - COMPILER: GCC
+      ARCH: 64
+      CC: gcc.exe
+      CMAKE_GENERATOR: MinGW Makefiles
+
+    - COMPILER: MSVC2015
+      PLATFORM: x86
+      CC: cl.exe
+      CMAKE_GENERATOR: NMake Makefiles
+
+    - COMPILER: MSVC2015
+      PLATFORM: amd64
+      CC: cl.exe
+      CMAKE_GENERATOR: NMake Makefiles
+
+    - COMPILER: MSVC2008
+      PLATFORM: x86
+      CC: cl.exe
+      CMAKE_GENERATOR: NMake Makefiles
+
+    - COMPILER: MSVC2008
+      PLATFORM: amd64
+      CC: cl.exe
+      CMAKE_GENERATOR: NMake Makefiles
+
+install:
+- if [%COMPILER%]==[MSVC2008] if [%PLATFORM%]==[amd64] call "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\bin\vcvars64.bat"
+- if [%COMPILER%]==[MSVC2008] if [%PLATFORM%]==[x86] call "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\bin\vcvars32.bat"
+- if [%COMPILER%]==[MSVC2015] call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %PLATFORM%
+- if [%COMPILER%]==[MSVC2019] call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM%
+- if [%COMPILER%]==[GCC] del /F /Q "C:\Program Files\Git\usr\bin\sh.exe"
+- if [%COMPILER%]==[GCC] set "PATH=C:\msys64\mingw%ARCH%\bin;%PATH%"
+
+build_script:
+- mkdir build
+- cd build
+
+- cmake -G "%CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=Release ..
+- cmake --build . --target install
+
+test_script:
+- cmake --build . --target check
+
+# Enable this to be able to login to the build worker. You can use the
+# `remmina` program in Ubuntu, use the login information that the line below
+# prints into the log.
+#on_finish:
+#- ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
