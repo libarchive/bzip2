@@ -1576,7 +1576,7 @@ void testf ( Char *name )
 static 
 void license ( void )
 {
-   fprintf ( stderr,
+   fprintf ( stdout,
 
     "bzip2, a block-sorting file compressor.  "
     "Version %s.\n"
@@ -1866,7 +1866,9 @@ IntNative main ( IntNative argc, Char *argv[] )
                case '8': blockSize100k    = 8; break;
                case '9': blockSize100k    = 9; break;
                case 'V':
-               case 'L': license();            break;
+               case 'L': license();
+                         exit ( 0 );
+                         break;
                case 'v': verbosity++; break;
                case 'h': usage ( progName );
                          exit ( 0 );
@@ -1892,8 +1894,8 @@ IntNative main ( IntNative argc, Char *argv[] )
       if (ISFLAG("--keep"))              keepInputFiles   = True;    else
       if (ISFLAG("--small"))             smallMode        = True;    else
       if (ISFLAG("--quiet"))             noisy            = False;   else
-      if (ISFLAG("--version"))           license();                  else
-      if (ISFLAG("--license"))           license();                  else
+      if (ISFLAG("--version"))           { license(); exit ( 0 ); }  else
+      if (ISFLAG("--license"))           { license(); exit ( 0 ); }  else
       if (ISFLAG("--exponential"))       workFactor = 1;             else 
       if (ISFLAG("--repetitive-best"))   redundant(aa->name);        else
       if (ISFLAG("--repetitive-fast"))   redundant(aa->name);        else
