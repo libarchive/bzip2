@@ -35,7 +35,7 @@ see the file [`code-of-conduct.md`][coc].
 Bzip2's source repository is at gitlab.com.  You can view the web
 interface here:
 
-https://gitlab.com/federicomenaquintero/bzip2
+https://gitlab.com/bzip2/bzip2
 
 Maintenance happens in the `master` branch.  There is an effort to port
 Bzip2 gradually to [Rust] in a `rustify` branch.
@@ -44,7 +44,7 @@ To report bugs, or to view existing reports, please do so in [Bzip2's
 repository][gitlab] as well.
 
 [coc]: code-of-conduct.md
-[gitlab]: https://gitlab.com/federicomenaquintero/bzip2/issues
+[gitlab]: https://gitlab.com/bzip2/bzip2/issues
 [Rust]: https://www.rust-lang.org
 
 
@@ -95,26 +95,12 @@ statement.
 
 ## Maintainers
 
-Since June 2019, the maintainer of Bzip2/libbz2 is [Federico Mena
-Quintero][federico].  Feel free to contact me for any questions you
-may have about Bzip2, both its usage and its development.  You can
-contact me in the following ways:
-
-* [Mail me][mail] at federico@gnome.org.
-
-* IRC: I am `federico` on `irc.gnome.org` in the `#rust` or
-  `#gnome-hackers` channels.  I'm there most weekdays (Mon-Fri)
-  starting at about UTC 14:00 (that's 08:00 my time; I am in the UTC-6
-  timezone).  If this is not a convenient time for you, feel free to
-  [mail me][mail] and we can arrange a time.
-
-[mail]: mailto:federico@gnome.org
-[federico]: https://people.gnome.org/~federico/
+Since June 2021, the maintainer of Bzip2/libbz2 is Micah Snyder.
 
 ### Special thanks
 
-Federico would like to thank Julian Seward, the original author of
-Bzip2/libbz2, for creating the program and making it a very compelling
-alternative to previous compression programs back in the early
-2000's.  Thanks to Julian also for letting Federico carry on with the
-maintainership of the program.
+Thanks to Julian Seward, the original author of Bzip2/libbz2, for
+creating the program and making it a very compelling alternative to
+previous compression programs back in the early 2000's.  Thanks to
+Julian also for letting Federico carry on with the maintainership of
+the program.
