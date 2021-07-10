@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
 import subprocess
 import sys
 
@@ -150,4 +151,9 @@ def test_decompress(args: argparse.Namespace) -> None:
 
 
 if __name__ == "__main__":
+
+    # Prevent OS environment variables from affecting the test suite.
+    os.environ.pop('BZIP', None)
+    os.environ.pop('BZIP2', None)
+
     main()
