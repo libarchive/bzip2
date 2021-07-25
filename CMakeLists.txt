@@ -251,6 +251,26 @@ if(ENABLE_SHARED_LIB)
         VERSION ${LT_VERSION} SOVERSION ${LT_SOVERSION})
     install(TARGETS bz2 DESTINATION ${CMAKE_INSTALL_LIBDIR})
     install(FILES bzlib.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+    if(USE_OLD_SONAME)
+        # Hack to support the old libbz2.so.1.0 version by including an extra copy.
+        # Technically the old SONAME is not libtool compatible.
+        # This hack is to support binary compatibility with libbz2 in some distro packages.
+        if(UNIX AND NOT APPLE)
+            find_program(PATCHELF_EXECUTABLE patchelf REQUIRED)
+
+            add_custom_command(TARGET bz2 POST_BUILD
+                COMMAND ${PATCHELF_EXECUTABLE} --set-soname "libbz2.so.${LT_SOVERSION}.${LT_AGE}" "$<TARGET_FILE_NAME:bz2>"
+                WORKING_DIRECTORY $<TARGET_FILE_DIR:bz2>
+                COMMENT "Patching SONAME in $<TARGET_FILE_NAME:bz2> to be libbz2.so.${LT_SOVERSION}.${LT_AGE}")
+
+            add_custom_command(TARGET bz2 POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E create_symlink "$<TARGET_FILE_NAME:bz2>" "libbz2.so.${LT_SOVERSION}.${LT_AGE}"
+                WORKING_DIRECTORY $<TARGET_FILE_DIR:bz2>
+                COMMENT "Generating symbolic link (or copy) libbz2.so.${LT_SOVERSION}.${LT_AGE} of libbz2.so.${LT_SOVERSION}")
+            install(PROGRAMS $<TARGET_FILE_DIR:bz2>/libbz2.so.${LT_SOVERSION}.${LT_AGE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+        endif()
+    endif()
 endif()
 
 if(ENABLE_STATIC_LIB)

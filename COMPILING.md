@@ -12,10 +12,29 @@ Meson works for Unix-like OSes and Windows; nmake is only for Windows.
 [Meson]: https://mesonbuild.com
 [CMake]: https://cmake.org
 
+> _Important note when compiling for Linux_:
+>
+> The SONAME for libbz2 for version 1.0 was: `libbz2.so.1.0`
+> Some distros patched it to libbz2.so.1 to be supported by libtool.
+> Others did not.
+>
+> We had to make a choice when switching from Makefiles -> CMake + Meson.
+> So, the SONAME for libbz2 for version 1.1 is now: `libbz2.so.1`
+>
+> Distros that need it to be ABI compatible with the old SONAME may either:
+> 1. Use CMake for the build with the option `-D USE_OLD_SONAME=ON`. This will
+>    require `patchelf` to be installed and will use it to change the SONAME
+>    in the shared library for you.
+>    It will also create an extra symlink: `libbz2.so.1.0`
+>
+> 2. Use `patchelf --set-soname` after the build to change the SONAME and
+>    install an extra symlink manually: `libbz2.so.1.0 -> libbz2.so.1.0.9`
+>
+> You can check the SONAME with: `objdump -p libbz2.so.1.0.9 | grep SONAME`
 
 ## Using Meson
 
-Meson provides a [large number of built-in options](https://mesonbuild.com/Builtin-options.html) 
+Meson provides a [large number of built-in options](https://mesonbuild.com/Builtin-options.html)
 to control compilation. A few important ones are listed below:
 
 - -Ddefault_library=[static|shared|both], defaults to shared, if you wish to
@@ -56,7 +75,7 @@ You will need
  Once you have installed the dependencies, the following should work
  to use the standard Meson configuration, a `builddir` for
  compilation, and a `/usr` prefix for installation:
- 
+
  ```sh
  meson --prefix /usr builddir/
  ninja -C builddir
