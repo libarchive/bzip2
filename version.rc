@@ -20,7 +20,7 @@ BEGIN
       BLOCK "040904b0"
       BEGIN
           // VALUE "Comments", "\0"
-          VALUE "CompanyName", "bzip2, https://gitlab.com/federicomenaquintero/bzip2\0"
+          VALUE "CompanyName", "bzip2, https://gitlab.com/bzip2/bzip2\0"
           VALUE "FileDescription", "bzip2\0"
           VALUE "FileVersion", "1.0.7\0"
 #if defined(BZ21DLL)

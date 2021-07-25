@@ -724,8 +724,8 @@ void panic ( const Char* s )
    fprintf ( stderr,
              "\n%s: PANIC -- internal consistency error:\n"
              "\t%s\n"
-             "\tThis is a BUG.  Please report it to me at:\n"
-             "\tjseward@acm.org\n",
+             "\tThis is a BUG.  Please report it at:\n"
+             "\thttps://gitlab.com/bzip2/bzip2/-/issues\n",
              progName, s );
    showFileNames();
    cleanUpAndFail( 3 );
@@ -804,7 +804,7 @@ void mySIGSEGVorSIGBUScatcher ( IntNative n )
       "   The user's manual, Section 4.3, has more info on (1) and (2).\n"
       "   \n"
       "   If you suspect this is a bug in bzip2, or are unsure about (1)\n"
-      "   or (2), feel free to report it to: bzip2-devel@sourceware.org.\n"
+      "   or (2), report it at: https://gitlab.com/bzip2/bzip2/-/issues\n"
       "   Section 4.3 of the user's manual describes the info a useful\n"
       "   bug report should have.  If the manual is available on your\n"
       "   system, please try and read it before mailing me.  If you don't\n"
@@ -824,7 +824,7 @@ void mySIGSEGVorSIGBUScatcher ( IntNative n )
       "   The user's manual, Section 4.3, has more info on (2) and (3).\n"
       "   \n"
       "   If you suspect this is a bug in bzip2, or are unsure about (2)\n"
-      "   or (3), feel free to report it to: bzip2-devel@sourceware.org.\n"
+      "   or (3), report it at: https://gitlab.com/bzip2/bzip2/-/issues\n"
       "   Section 4.3 of the user's manual describes the info a useful\n"
       "   bug report should have.  If the manual is available on your\n"
       "   system, please try and read it before mailing me.  If you don't\n"

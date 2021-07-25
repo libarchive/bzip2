@@ -369,7 +369,7 @@ CAVEATS
 AUTHOR
        Julian Seward, jseward@acm.org
 
-       https://sourceware.org/bzip2/
+       https://gitlab.com/bzip2/bzip2
 
        The ideas embodied in bzip2 are due to (at least) the fol-
        lowing  people: Michael Burrows and David Wheeler (for the
@@ -388,4 +388,3 @@ AUTHOR
        gzip.  Many people sent patches, helped  with  portability
        problems,  lent  machines,  gave advice and were generally
        helpful.
-

@@ -681,7 +681,7 @@ their help, support and advice.  See the manual in the source
 distribution for pointers to sources of documentation.  Christian
 von Roques encouraged me to look for faster sorting algorithms,
 so as to speed up compression.  Bela Lubkin encouraged me to
-improve the worst-case compression performance.  
+improve the worst-case compression performance.
 Donna Robinson XMLised the documentation.
 Many people sent
 patches, helped with portability problems, lent machines, gave
@@ -789,7 +789,7 @@ concatenated end-to-end.</para>
 <para>For reading files,
 <computeroutput>BZ2_bzReadOpen</computeroutput>,
 <computeroutput>BZ2_bzRead</computeroutput>,
-<computeroutput>BZ2_bzReadClose</computeroutput> and 
+<computeroutput>BZ2_bzReadClose</computeroutput> and
 <computeroutput>BZ2_bzReadGetUnused</computeroutput> are
 supplied.  For writing files,
 <computeroutput>BZ2_bzWriteOpen</computeroutput>,
@@ -901,7 +901,7 @@ denote an error situation.</para>
  <varlistentry>
   <term><computeroutput>BZ_RUN_OK, BZ_FLUSH_OK,
     BZ_FINISH_OK</computeroutput></term>
-  <listitem><para>In 
+  <listitem><para>In
    <computeroutput>BZ2_bzCompress</computeroutput>, the requested
    flush/finish/nothing-special action was completed
    successfully.</para></listitem>
@@ -1067,8 +1067,8 @@ typedef struct {
   void *opaque;
 } bz_stream;
 
-int BZ2_bzCompressInit ( bz_stream *strm, 
-                         int blockSize100k, 
+int BZ2_bzCompressInit ( bz_stream *strm,
+                         int blockSize100k,
                          int verbosity,
                          int workFactor );
 </programlisting>
@@ -1174,13 +1174,13 @@ obsolete.</para>
 BZ_CONFIG_ERROR
   if the library has been mis-compiled
 BZ_PARAM_ERROR
-  if strm is NULL 
+  if strm is NULL
   or blockSize < 1 or blockSize > 9
   or verbosity < 0 or verbosity > 4
   or workFactor < 0 or workFactor > 250
-BZ_MEM_ERROR 
+BZ_MEM_ERROR
   if not enough memory is available
-BZ_OK 
+BZ_OK
   otherwise
 </programlisting>
 
@@ -1345,7 +1345,7 @@ RUNNING/BZ_FINISH
   Return value = BZ_FINISH_OK
 
 FLUSHING/BZ_FLUSH
-  Compress from next_in to next_out as much as possible, 
+  Compress from next_in to next_out as much as possible,
   but do not accept any more input.
   If all the existing input has been used up and all compressed
   output has been removed
@@ -1353,13 +1353,13 @@ FLUSHING/BZ_FLUSH
   else
     Next state = FLUSHING; Return value = BZ_FLUSH_OK
 
-FLUSHING/other     
+FLUSHING/other
   Illegal.
   Return value = BZ_SEQUENCE_ERROR
 
 FINISHING/BZ_FINISH
   Compress from next_in to next_out as much as possible,
-  but to not accept any more input.  
+  but to not accept any more input.
   If all the existing input has been used up and all compressed
   output has been removed
     Next state = IDLE; Return value = BZ_STREAM_END
@@ -1702,7 +1702,7 @@ general points.</para>
 <programlisting>
 typedef void BZFILE;
 
-BZFILE *BZ2_bzReadOpen( int *bzerror, FILE *f, 
+BZFILE *BZ2_bzReadOpen( int *bzerror, FILE *f,
                         int verbosity, int small,
                         void *unused, int nUnused );
 </programlisting>
@@ -1834,13 +1834,13 @@ BZ_SEQUENCE_ERROR
 BZ_IO_ERROR
   if there is an error reading from the compressed file
 BZ_UNEXPECTED_EOF
-  if the compressed file ended before 
+  if the compressed file ended before
   the logical end-of-stream was detected
 BZ_DATA_ERROR
   if a data integrity error was detected in the compressed stream
 BZ_DATA_ERROR_MAGIC
-  if the stream does not begin with the requisite header bytes 
-  (ie, is not a bzip2 data file).  This is really 
+  if the stream does not begin with the requisite header bytes
+  (ie, is not a bzip2 data file).  This is really
   a special case of BZ_DATA_ERROR.
 BZ_MEM_ERROR
   if insufficient memory was available
@@ -1877,7 +1877,7 @@ BZ2_bzReadClose
 <title>BZ2_bzReadGetUnused</title>
 
 <programlisting>
-void BZ2_bzReadGetUnused( int* bzerror, BZFILE *b, 
+void BZ2_bzReadGetUnused( int* bzerror, BZFILE *b,
                           void** unused, int* nUnused );
 </programlisting>
 
@@ -1955,7 +1955,7 @@ none
 <title>BZ2_bzWriteOpen</title>
 
 <programlisting>
-BZFILE *BZ2_bzWriteOpen( int *bzerror, FILE *f, 
+BZFILE *BZ2_bzWriteOpen( int *bzerror, FILE *f,
                          int blockSize100k, int verbosity,
                          int workFactor );
 </programlisting>
@@ -2193,7 +2193,7 @@ if (bzerror != BZ_OK) {
 while ( /* condition */ ) {
  /* get data to write into buf, and set nBuf appropriately */
  nWritten = BZ2_bzWrite ( &bzerror, b, buf, nBuf );
- if (bzerror == BZ_IO_ERROR) { 
+ if (bzerror == BZ_IO_ERROR) {
    BZ2_bzWriteClose ( &bzerror, b );
    /* handle error */
  }
@@ -2306,7 +2306,7 @@ BZ_PARAM_ERROR
   or verbosity < 0 or verbosity > 4
   or workFactor < 0 or workFactor > 250
 BZ_MEM_ERROR
-  if insufficient memory is available 
+  if insufficient memory is available
 BZ_OUTBUFF_FULL
   if the size of the compressed data exceeds *destLen
 BZ_OK
@@ -2373,7 +2373,7 @@ BZ_PARAM_ERROR
   or small != 0 && small != 1
   or verbosity < 0 or verbosity > 4
 BZ_MEM_ERROR
-  if insufficient memory is available 
+  if insufficient memory is available
 BZ_OUTBUFF_FULL
   if the size of the compressed data exceeds *destLen
 BZ_DATA_ERROR
@@ -2457,7 +2457,7 @@ value.</para>
 </sect1>
 
 
-<sect1 id="stdio-free" 
+<sect1 id="stdio-free"
        xreflabel="Using the library in a stdio-free environment">
 <title>Using the library in a stdio-free environment</title>
 
@@ -2502,12 +2502,13 @@ message:</para>
 <blockquote>
 <para>bzip2/libbzip2: internal error number N.</para>
 <para>This is a bug in bzip2/libbzip2, &bz-version; of &bz-date;.
-Please report it to me at: &bz-email;.  If this happened
-when you were using some program which uses libbzip2 as a
-component, you should also report this bug to the author(s)
-of that program.  Please make an effort to report this bug;
+Please report it at: https://gitlab.com/bzip2/bzip2/-/issues.
+If this happened when you were using some program which uses
+libbzip2 as a component, you should also report this bug to
+the author(s) of that program.
+Please make an effort to report this bug;
 timely and accurate bug reports eventually lead to higher
-quality software.  Thanks.  Julian Seward, &bz-date;.
+quality software.  Thanks.
 </para></blockquote>
 
 <para>where <computeroutput>N</computeroutput> is some error code
@@ -2853,9 +2854,9 @@ them because "oh, they won't be relevant".  At the bare
 minimum:</para>
 
 <programlisting>
-Machine type.  Operating system version.  
-Exact version of bzip2 (do bzip2 -V).  
-Exact version of the compiler used.  
+Machine type.  Operating system version.
+Exact version of bzip2 (do bzip2 -V).
+Exact version of the compiler used.
 Flags passed to the compiler.
 </programlisting>
 
@@ -2885,14 +2886,14 @@ an intrinsic property of the Burrows-Wheeler transform
 uses less memory but gets pretty good compression, and has
 minimal latency, consider Jean-loup Gailly's and Mark Adler's
 work, <computeroutput>zlib-1.2.1</computeroutput> and
-<computeroutput>gzip-1.2.4</computeroutput>.  Look for them at 
-<ulink url="http://www.zlib.org">http://www.zlib.org</ulink> and 
+<computeroutput>gzip-1.2.4</computeroutput>.  Look for them at
+<ulink url="http://www.zlib.org">http://www.zlib.org</ulink> and
 <ulink url="http://www.gzip.org">http://www.gzip.org</ulink>
 respectively.</para>
 
 <para>For something faster and lighter still, you might try Markus F
 X J Oberhumer's <computeroutput>LZO</computeroutput> real-time
-compression/decompression library, at 
+compression/decompression library, at
 <ulink url="http://www.oberhumer.com/opensource">http://www.oberhumer.com/opensource</ulink>.</para>
 
 </sect1>
@@ -2912,7 +2913,7 @@ ideas.</para>
 
 <literallayout>Michael Burrows and D. J. Wheeler:
   "A block-sorting lossless data compression algorithm"
-   10th May 1994. 
+   10th May 1994.
    Digital SRC Research Report 124.
    ftp://ftp.digital.com/pub/DEC/SRC/research-reports/SRC-124.ps.gz
    If you have trouble finding it, try searching at the
