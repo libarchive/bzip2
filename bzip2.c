@@ -128,6 +128,13 @@
 
 #endif /* BZ_LCCWIN32 */
 
+#if _WIN32
+#define fileno          _fileno
+#define write           _write
+#define isatty          _isatty
+#define setmode         _setmode
+#define STDERR_FILENO   _fileno(stderr)
+#endif
 
 /*---------------------------------------------*/
 /*--
