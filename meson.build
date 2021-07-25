@@ -1,7 +1,7 @@
 project(
   'bzip2',
   ['c'],
-  version : '1.0.7',
+  version : '1.1.0',
   meson_version : '>= 0.50.0',
   default_options : ['c_std=c89', 'warning_level=1'],
 )
@@ -98,7 +98,7 @@ bz_sources = ['blocksort.c', 'huffman.c', 'crctable.c', 'randtable.c', 'compress
 ##
 ## KEEP THESE IN SYNC WITH CMakeLists.txt OR STUFF WILL BREAK!
 bz2_lt_current  = 1
-bz2_lt_revision = 7
+bz2_lt_revision = 9
 bz2_lt_age      = 0
 
 bz2_soversion   = bz2_lt_current - bz2_lt_age

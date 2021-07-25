@@ -24,7 +24,16 @@ Build system changes:
 
 Other changes, fixes:
 
-* Use `O_CLOEXEC` for `bzopen()`. (Federico Mena Quitero)
+* The SONAME for libbz2 for version 1.0 was: `libbz2.so.1.0`
+  Some distros patched it to libbz2.so.1 to be supported by libtool.
+  We had to make a choice when switching from Makefiles -> CMake + Meson.
+  So, the SONAME for libbz2 for version 1.1 is now: `libbz2.so.1`
+
+  Distros that need it to be ABI compatible with the old SONAME should:
+  1. Use `patchelf --set-soname` after the build to change it back, and
+  2. Install an extra symlink: `libbz2.so.1.0 -> libbz2.so.1.0.9`
+
+* Use `O_CLOEXEC` for `bzopen()`. (Federico Mena Quintero)
 
 * Fix `mingw` compilation. (Marty E. Plummer, Dylan Baker)
 
@@ -39,7 +48,7 @@ Other changes, fixes:
   and interesting anecdotes.
 
 * Mark Wielaard for constructing a repository based on tarballs from
-  the original releases.  For a different construction by Evan Nemerson, see
+  the original releases. For a different construction by Evan Nemerson, see
   https://gitlab.com/bzip2/bzip2/issues/7
 
 * Federico Mena Quintero for his maintainership of the project June 2019 -
@@ -438,7 +447,7 @@ First version after 0.1pl2.
  This file is part of bzip2/libbzip2, a program and library for
  lossless, block-sorting data compression.
 
- bzip2/libbzip2 version 1.0.6 of 6 September 2010
+ bzip2/libbzip2 version 1.1.0 of 6 September 2010
  Copyright (C) 1996-2010 Julian Seward <jseward@acm.org>
 
  Please read the WARNING, DISCLAIMER and PATENTS sections in the

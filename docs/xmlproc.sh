@@ -5,10 +5,10 @@
 #  This file is part of bzip2/libbzip2, a program and library for
 #  lossless, block-sorting data compression.
 #
-#  bzip2/libbzip2 version 1.0.6 of 6 September 2010
+#  bzip2/libbzip2 version 1.1.0 of 6 September 2010
 #  Copyright (C) 1996-2010 Julian Seward <jseward@acm.org>
 #
-#  Please read the WARNING, DISCLAIMER and PATENTS sections in the 
+#  Please read the WARNING, DISCLAIMER and PATENTS sections in the
 #  README file.
 #
 #  This program is released under the terms of the license contained
@@ -60,7 +60,7 @@ export XML_CATALOG_FILES=/etc/xml/catalog
 
 # post-processing tidy up
 cleanup() {
-  echo "Cleaning up: $@" 
+  echo "Cleaning up: $@"
   while [ $# != 0 ]
   do
     arg=$1; shift;
@@ -73,8 +73,8 @@ case $action in
   -v)
    flags='--noout --xinclude --noblanks --postvalid'
    dtd='--dtdvalid http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd'
-   xmllint $flags $dtd $xmlfmtfile 2> $OUT 
-   egrep 'error' $OUT 
+   xmllint $flags $dtd $xmlfmtfile 2> $OUT
+   egrep 'error' $OUT
    rm $OUT
   ;;
 

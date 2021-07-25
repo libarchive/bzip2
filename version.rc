@@ -22,7 +22,7 @@ BEGIN
           // VALUE "Comments", "\0"
           VALUE "CompanyName", "bzip2, https://gitlab.com/bzip2/bzip2\0"
           VALUE "FileDescription", "bzip2\0"
-          VALUE "FileVersion", "1.0.7\0"
+          VALUE "FileVersion", "1.1.0\0"
 #if defined(BZ21DLL)
           VALUE "InternalName", "bz2-1\0"
           VALUE "OriginalFilename", "bz2-1.dll\0"
@@ -37,7 +37,7 @@ BEGIN
           // VALUE "LegalTrademarks", "\0"
           // VALUE "PrivateBuild", "\0"
           VALUE "ProductName", "bzip2\0"
-          VALUE "ProductVersion", "1.0.7\0"
+          VALUE "ProductVersion", "1.1.0\0"
           // VALUE "SpecialBuild", "\0"
       END
     END
