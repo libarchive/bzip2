@@ -25,17 +25,16 @@ Build system changes:
 Important note when compiling for Linux:
 
 * The SONAME for libbz2 for version 1.0 was: `libbz2.so.1.0`
-  Some distros patched it to libbz2.so.1 to be supported by libtool.
+  Some distros patched it to `libbz2.so.1` to be supported by libtool.
   Others did not.
 
   We had to make a choice when switching from Makefiles -> CMake + Meson.
   So, the SONAME for libbz2 for version 1.1 is now: `libbz2.so.1`
 
   Distros that need it to be ABI compatible with the old SONAME may either:
-  1. Use CMake for the build with the option `-D USE_OLD_SONAME=ON`. This will
-    require `patchelf` to be installed and will use it to change the SONAME
-    in the shared library for you.
-    It will also create an extra symlink: `libbz2.so.1.0`
+
+  1. Use CMake for the build with the option `-D USE_OLD_SONAME=ON`.
+     This will build an extra copy of the library with the old SONAME.
 
   2. Use `patchelf --set-soname` after the build to change the SONAME and
     install an extra symlink manually: `libbz2.so.1.0 -> libbz2.so.1.0.9`

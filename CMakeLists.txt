@@ -257,18 +257,19 @@ if(ENABLE_SHARED_LIB)
         # Technically the old SONAME is not libtool compatible.
         # This hack is to support binary compatibility with libbz2 in some distro packages.
         if(UNIX AND NOT APPLE)
-            find_program(PATCHELF_EXECUTABLE patchelf REQUIRED)
-
-            add_custom_command(TARGET bz2 POST_BUILD
-                COMMAND ${PATCHELF_EXECUTABLE} --set-soname "libbz2.so.${LT_SOVERSION}.${LT_AGE}" "$<TARGET_FILE_NAME:bz2>"
-                WORKING_DIRECTORY $<TARGET_FILE_DIR:bz2>
-                COMMENT "Patching SONAME in $<TARGET_FILE_NAME:bz2> to be libbz2.so.${LT_SOVERSION}.${LT_AGE}")
-
-            add_custom_command(TARGET bz2 POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E create_symlink "$<TARGET_FILE_NAME:bz2>" "libbz2.so.${LT_SOVERSION}.${LT_AGE}"
-                WORKING_DIRECTORY $<TARGET_FILE_DIR:bz2>
-                COMMENT "Generating symbolic link (or copy) libbz2.so.${LT_SOVERSION}.${LT_AGE} of libbz2.so.${LT_SOVERSION}")
-            install(PROGRAMS $<TARGET_FILE_DIR:bz2>/libbz2.so.${LT_SOVERSION}.${LT_AGE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+            add_library(bz2_old_soname SHARED ${BZ2_RES})
+            target_sources(bz2_old_soname
+                PRIVATE   ${BZ2_SOURCES}
+                        ${CMAKE_CURRENT_SOURCE_DIR}/libbz2.def
+                PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}/bzlib_private.h
+                INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/bzlib.h
+            )
+            set_target_properties(bz2_old_soname PROPERTIES
+                COMPILE_FLAGS "${WARNCFLAGS}"
+                VERSION ${LT_SOVERSION}.${LT_AGE} SOVERSION ${LT_SOVERSION}.${LT_AGE}
+                OUTPUT_NAME bz2
+            )
+            install(TARGETS bz2_old_soname DESTINATION ${CMAKE_INSTALL_LIBDIR})
         endif()
     endif()
 endif()
