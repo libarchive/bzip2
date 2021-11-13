@@ -353,7 +353,7 @@ consistency error (eg, bug) which caused
  <term><computeroutput>-z --compress</computeroutput></term>
  <listitem><para>The complement to
   <computeroutput>-d</computeroutput>: forces compression,
-  regardless of the invokation name.</para></listitem>
+  regardless of the invocation name.</para></listitem>
  </varlistentry>
 
  <varlistentry>
@@ -2657,7 +2657,7 @@ are:</para>
 
    <para>Probably the best long-term solution, and the one I have
    incorporated into 0.9.5 and above, is to use the existing
-   sorting algorithm initially, and fall back to a O(N (log N)^2)
+   sorting algorithm initially, and fall back to an O(N (log N)^2)
    algorithm if the standard algorithm gets into
    difficulties.</para></listitem>
 

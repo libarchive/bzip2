@@ -53,7 +53,7 @@ Meson will never change compilers once configured, so $CC is perfectly safe.
 
 You will need
  - Python 3.5 or newer (for Meson)
- - meson (Verison 0.48 or newer)
+ - meson (Version 0.48 or newer)
  - ninja
  - pkg-config
  - A C compiler such as GCC or Clang

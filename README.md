@@ -62,7 +62,7 @@ reported the same issue.
 ## Compiling Bzip2 and libbz2
 
 Please see the [`COMPILING.md`](COMPILING.md) file for details.
-This includes instructions for buliding using Meson, CMake, or nmake.
+This includes instructions for building using Meson, CMake, or nmake.
 
 ## WARNING
 
