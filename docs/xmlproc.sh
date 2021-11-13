@@ -74,7 +74,7 @@ case $action in
    flags='--noout --xinclude --noblanks --postvalid'
    dtd='--dtdvalid http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd'
    xmllint $flags $dtd $xmlfmtfile 2> $OUT
-   egrep 'error' $OUT
+   grep -F 'error' $OUT
    rm $OUT
   ;;
 

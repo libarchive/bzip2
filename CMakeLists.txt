@@ -356,7 +356,7 @@ endif()
 
 add_subdirectory(man)
 
-set(DOCGEN_EXECS xsltproc perl xmllint egrep pdfxmltex pdftops)
+set(DOCGEN_EXECS xsltproc perl xmllint grep pdfxmltex pdftops)
 
 if(ENABLE_DOCS)
     foreach(EXEC IN LISTS DOCGEN_EXECS)

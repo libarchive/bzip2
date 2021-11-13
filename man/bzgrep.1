@@ -5,17 +5,17 @@
 bzgrep, bzfgrep, bzegrep \- search possibly bzip2 compressed files for a regular expression
 .SH SYNOPSIS
 .B bzgrep
-[ grep_options ]
+[ grep options ]
 .BI  [\ -e\ ] " pattern"
 .IR filename ".\|.\|."
 .br
 .B bzegrep
-[ egrep_options ]
+[ grep -E options ]
 .BI  [\ -e\ ] " pattern"
 .IR filename ".\|.\|."
 .br
 .B bzfgrep
-[ fgrep_options ]
+[ grep -F options ]
 .BI  [\ -e\ ] " pattern"
 .IR filename ".\|.\|."
 .SH DESCRIPTION
@@ -36,9 +36,9 @@ is invoked as
 or
 .I bzfgrep
 then
-.I egrep
+.I grep -E
 or
-.I fgrep
+.I grep -F
 is used instead of
 .I grep.
 If the GREP environment variable is set,
@@ -47,10 +47,10 @@ uses it as the
 .I grep
 program to be invoked. For example:
 
-    for sh:  GREP=fgrep  bzgrep string files
-    for csh: (setenv GREP fgrep; bzgrep string files)
+    for sh:  GREP="grep -F" bzgrep string files
+    for csh: (setenv GREP "grep -F"; bzgrep string files)
 .SH AUTHOR
 Charles Levert (charles@comm.polymtl.ca). Adapted to bzip2 by Philippe
 Troin <phil@fifi.org> for Debian GNU/Linux.
 .SH "SEE ALSO"
-grep(1), egrep(1), fgrep(1), bzdiff(1), bzmore(1), bzless(1), bzip2(1)
+grep(1), bzdiff(1), bzmore(1), bzless(1), bzip2(1)
