@@ -71,9 +71,6 @@ include(GNUInstallDirs)
 # For test scripts and documentation
 find_package(Python3)
 
-# Always use '-fPIC'/'-fPIE' option.
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
 # Checks for header files.
 include(CheckIncludeFile)
 check_include_file(arpa/inet.h    HAVE_ARPA_INET_H)
@@ -246,6 +243,8 @@ if(ENABLE_SHARED_LIB)
                   ${CMAKE_CURRENT_SOURCE_DIR}/libbz2.def
         PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}/bzlib_private.h
         INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/bzlib.h)
+    # Always use '-fPIC'/'-fPIE' option for shared libraries.
+    set_property(TARGET bz2 PROPERTY POSITION_INDEPENDENT_CODE ON)
     set_target_properties(bz2 PROPERTIES
         COMPILE_FLAGS "${WARNCFLAGS}"
         VERSION ${LT_VERSION} SOVERSION ${LT_SOVERSION})
