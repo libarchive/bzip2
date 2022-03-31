@@ -1,7 +1,0 @@
-These are the patches from openSUSE that are not included in this Git
-repository:
-
-* bzip2-point-to-doc-pkg.patch - modifies the README file to mention a
-  bzip2-doc package instead of the bzip2.txt file from the source
-  distribution.  This is suitable for distributions which repackage
-  the original files into different packages.
